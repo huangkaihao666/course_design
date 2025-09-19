@@ -7,10 +7,11 @@ const api = axios.create({
 });
 
 // 爬取商品评论
-export async function crawlComments(productId: string, maxPages: number = 3) {
+export async function crawlComments(productId: string, maxPages: number = 3, cookies: string = '') {
   const response = await api.post('/crawl', {
     productId,
-    maxPages
+    maxPages,
+    cookies
   });
   return response.data;
 }

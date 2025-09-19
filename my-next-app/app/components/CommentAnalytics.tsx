@@ -27,7 +27,8 @@ ChartJS.register(
 );
 
 export default function CommentAnalytics() {
-  const [productId, setProductId] = useState('969932796642');
+  const [productId, setProductId] = useState('889955499609'); // 改为有数据的ID
+  const [cookies, setCookies] = useState('');
   const [comments, setComments] = useState<CommentWithSentiment[]>([]);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setCrawlLoading] = useState(false);
@@ -40,18 +41,34 @@ export default function CommentAnalytics() {
       setAnalyzing(true);
       setError(null);
       
+      console.log('开始加载商品ID:', productId);
       const result = await getComments(productId);
-      if (result.success && result.data.length > 0) {
-        const analysisResult = await analyzeSentiment(result.data);
-        setComments(analysisResult.comments);
-        setStatistics(analysisResult.statistics);
+      console.log('API返回结果:', result);
+      
+      if (result.success) {
+        if (result.data && result.data.length > 0) {
+          console.log('找到数据，开始情感分析...');
+          const analysisResult = await analyzeSentiment(result.data);
+          console.log('情感分析完成:', analysisResult);
+          setComments(analysisResult.comments);
+          setStatistics(analysisResult.statistics);
+          setError(null);
+          console.log('数据设置完成，评论数量:', analysisResult.comments.length);
+        } else {
+          console.log('没有找到评论数据');
+          setComments([]);
+          setStatistics(null);
+          setError(`商品 ${productId} 暂无评论数据`);
+        }
       } else {
+        console.log('API调用失败:', result.error);
         setComments([]);
         setStatistics(null);
+        setError(result.error || '加载评论失败');
       }
     } catch (err) {
+      console.error('加载评论异常:', err);
       setError('加载评论失败');
-      console.error(err);
     } finally {
       setAnalyzing(false);
     }
@@ -63,7 +80,7 @@ export default function CommentAnalytics() {
       setCrawlLoading(true);
       setError(null);
       
-      const result = await crawlComments(productId, 3);
+      const result = await crawlComments(productId, 3, cookies);
       if (result.success) {
         const analysisResult = await analyzeSentiment(result.data);
         setComments(analysisResult.comments);
@@ -79,10 +96,17 @@ export default function CommentAnalytics() {
     }
   };
 
-  // 初始加载
+  // 防抖处理，避免频繁调用API
   useEffect(() => {
-    loadExistingComments();
-  }, []);
+    const timer = setTimeout(() => {
+      if (productId.trim()) {
+        console.log('开始加载商品ID:', productId);
+        loadExistingComments();
+      }
+    }, 500); // 减少防抖时间到0.5秒，让API有更多时间处理
+
+    return () => clearTimeout(timer);
+  }, [productId]);
 
   // 情感分布图表数据
   const sentimentChartData = {
@@ -132,8 +156,8 @@ export default function CommentAnalytics() {
 
         {/* 控制面板 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 商品ID
               </label>
@@ -142,9 +166,23 @@ export default function CommentAnalytics() {
                 value={productId}
                 onChange={(e) => setProductId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="请输入商品ID"
+                placeholder="请输入商品ID（如：549111425823），系统会自动加载数据"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cookies（可选，用于获取其他商品数据）
+              </label>
+              <input
+                type="text"
+                value={cookies}
+                onChange={(e) => setCookies(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="从浏览器开发者工具中复制cookies"
+              />
+            </div>
+          </div>
+          <div className="flex gap-4 items-end">
             <div className="flex gap-2">
               <button
                 onClick={loadExistingComments}
@@ -164,6 +202,21 @@ export default function CommentAnalytics() {
               </button>
             </div>
           </div>
+          
+          {analyzing && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md">
+              🔍 正在自动加载商品 {productId} 的数据...
+              <div className="mt-2 text-sm text-blue-600">
+                如果没有现有数据，系统将自动爬取新数据，请稍候...
+              </div>
+            </div>
+          )}
+          
+          {!analyzing && comments.length > 0 && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md">
+              ✅ 成功加载 {comments.length} 条评论数据
+            </div>
+          )}
           
           {error && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">

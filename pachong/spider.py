@@ -214,9 +214,9 @@ class TmallCommentSpider:
     def save_to_file(self, comments, filename):
         """保存评论到文件"""
         try:
-            # 确保输出目录存在
+            # 保存到当前目录的output文件夹
             os.makedirs('output', exist_ok=True)
-            filepath = f"output/{filename}"
+            filepath = os.path.join('output', filename)
             
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(comments, f, ensure_ascii=False, indent=2)
@@ -233,8 +233,8 @@ def main():
     print("🛒 淘宝/天猫商品评论爬虫")
     print("=" * 50)
     
-    # 设置cookies - 请替换为您的真实cookies
-    cookies = """xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=d0ba69fe3dfea9427db9ebb23fa37c2f_1758290193193; _m_h5_tk_enc=656e404dfade31fd0f5c1ffb5352fa51; tfstk=gNKnLj4731Nj7NlOWhsIJQxfCv3tJMs5ZQERwgCr71562eC-R0DlsK7KdQdJS_Aws6JdwvtkSB9VJQvSdT5yaQfJJVnvdps54jQoDmpI1uXUaBfFaRkPnTaEBwzd4KDV4jhxXPeNRXIywNirbhvN1TqUY_Rzb1Wc_TzF4Q5N7tWYTgRyaNWNHtNULyWP_O51Ug5yagkGb16R4_li5jfc4GxZapPrtX5RohXh-sJZluqz_9PAipS4qubBaw2pL1qz4h8uug3VicVN6LJXzNxoXlsWBEAkzCkz4_YNnIXv9crh4FRMmZJsik1H7BtlvZiuEOYDQBxwIYUMZCJXlM-ENkCBzd-P6Hk8qs8vhGX62fZFZF8yvws7TXXMxKxkrgWU7rl_Ru6Zehz7PwW1IshmRWjgHlYDZADglAQFC9NxIA4WUwW1IsHiIr7l8O6QM"""
+    # 从环境变量获取cookies，如果没有则使用默认值
+    cookies = os.getenv('COOKIES', """xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=fa69dcb6ac62e22452533f22ae5e27aa_1758298239087; _m_h5_tk_enc=178d568bcb785ebbe1cb127a8696ac1f; tfstk=gbAjBE9Qvhdz7-1T5t0zFAXyP6f6C4lEhP_9-FF4WsCA55THfE5wWGR113xRBI52u3G6-H6VBCSw1rAWA5PqmxYT115tYDlETEvcs1nUU97w6ibMyG3PH-59R2CtYDlzUzBm01KNEc0nVUIl5SQADhI-wNSRW-KODTERRwfO6hQOeUQF5oeOkS3WygbO6GKOH46RqNh9nAQ_hiTjJcz9VawRbEI765djstsBBRPT6Q_fhO8AVLJyNZ6fAOETYsRBJEdh5C0LCGTHHn7kfXi5wItXMT1s17f2RLKfFKi_NTvJ-CBWEDwH-EKXp9dxNq6Wie5AVC0gsip2WCW6MDUNDIx2N9Agc0SwLURAFHnzNhX6HpCv1DGR42VFAsrzCz631asEP4wgI1C1obpifImAHabXo4g7cOXAragjP4wgItQlzx3SPo6G.""")
     
     # 从环境变量获取参数，如果没有则使用默认值
     product_id = os.getenv('PRODUCT_ID', '969932796642')
@@ -244,7 +244,13 @@ def main():
     spider = TmallCommentSpider(cookies=cookies)
     
     print(f"🎯 商品ID: {product_id}")
+    print(f"📄 最大页数: {max_pages}")
     print(f"📡 开始获取评论数据...")
+    
+    # 测试单页获取
+    print(f"🔍 测试获取第1页数据...")
+    test_result = spider.get_comments(product_id, page_no=1, page_size=20)
+    print(f"📊 测试结果: {test_result}")
     
     # 获取评论数据
     comments = spider.get_multiple_pages(product_id, max_pages=max_pages, page_size=20)
