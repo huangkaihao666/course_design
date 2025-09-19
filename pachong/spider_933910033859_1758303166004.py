@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-淘宝/天猫商品评论爬虫 - 主程序
-使用方法: python3 spider.py
+自动生成的淘宝/天猫商品评论爬虫
+商品ID: 933910033859
+生成时间: 2025/9/20 01:32:45
 """
 
 import requests
@@ -15,36 +16,35 @@ from fake_useragent import UserAgent
 
 
 class TmallCommentSpider:
-    """天猫商品评论爬虫"""
+    """天猫商品评论爬虫 - 自动配置版本"""
     
-    def __init__(self, cookies=None):
+    def __init__(self):
         self.session = requests.Session()
         self.ua = UserAgent()
         self.base_url = "https://h5api.m.tmall.com/h5/mtop.taobao.rate.detaillist.get/6.0/"
-        self.cookies_str = cookies
+        self.product_id = "933910033859"
         
-        # 设置请求头
+        # 自动配置的请求头
         self.headers = {
-            'accept': '*/*',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
-            'cache-control': 'no-cache',
-            'pragma': 'no-cache',
-            'referer': 'https://detail.tmall.com/',
-            'sec-ch-ua': '"Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"macOS"',
-            'sec-fetch-dest': 'script',
-            'sec-fetch-mode': 'no-cors',
-            'sec-fetch-site': 'same-site',
-            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-            'origin': 'https://detail.tmall.com',
-            'x-requested-with': 'XMLHttpRequest'
-        }
+        "accept": "*/*",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "https://detail.tmall.com/",
+        "sec-ch-ua": "",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "",
+        "sec-fetch-dest": "script",
+        "sec-fetch-mode": "no-cors",
+        "sec-fetch-site": "same-site",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+}
         
-        # 设置cookies
-        if cookies:
-            self.session.cookies.update(self._parse_cookies(cookies))
+        # 自动配置的cookies
+        self.cookies_str = "xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=fa69dcb6ac62e22452533f22ae5e27aa_1758298239087; _m_h5_tk_enc=178d568bcb785ebbe1cb127a8696ac1f; tfstk=gktEh9iqKgA6yYfd-hszQYdCY0SdRgljL315ELvld6fnwvBl4BOGru9IJYkP_QCCRMYCEuR11QZWd38T4KpJAvISpMpd2gcjGm9yppIRHaHpEH5GSt9g-kfo5GmkFbViGmiXK2XdVdcXVdhyW1Wlq9fhtODN39zhqaXHIAWlFW4uxQDZQTWfEyXlrOmGdtSlZQjoQlXPs9jlrQviOI_NucWc-A7BclhjFgbFipfamdtGKkfjD1qk4hXh8MFNsub6b97Fip-Vb6hPUExVJIc_R6Y2kIWXOcqegpAeoZx3sfSJCERP3HD0u_RpIH_MxYaABgLHoMxrgWveTBKpopc_7O8Mdh76mjrPJFApka-S1mIBlKtRoHmUM1_AUISH7fqeig8QwOmQV3LUZz7hBO5jQAyKzNg4yr4qPzURSQ6NGvpLyzQnZO5jQAz8ywnPQsMpp"
+        
+        if self.cookies_str:
+            self.session.cookies.update(self._parse_cookies(self.cookies_str))
     
     def _parse_cookies(self, cookie_string):
         """解析cookie字符串为字典"""
@@ -93,7 +93,6 @@ class TmallCommentSpider:
         
         comments = []
         try:
-            # 获取评论列表
             rate_list = raw_data['data'].get('rateList', [])
             
             for rate in rate_list:
@@ -108,11 +107,9 @@ class TmallCommentSpider:
                     'pics': []
                 }
                 
-                # 提取点赞数
                 if 'interactInfo' in rate and isinstance(rate['interactInfo'], dict):
                     comment['useful_count'] = int(rate['interactInfo'].get('likeCount', 0))
                 
-                # 提取图片
                 if 'feedPicPathList' in rate and isinstance(rate['feedPicPathList'], list):
                     comment['pics'] = rate['feedPicPathList']
                 
@@ -123,14 +120,13 @@ class TmallCommentSpider:
         
         return comments
     
-    def get_comments(self, product_id, page_no=1, page_size=20):
+    def get_comments(self, page_no=1, page_size=20):
         """获取商品评论"""
-        # 构建请求参数
         t = str(int(time.time() * 1000))
         
         data_params = {
             "showTrueCount": False,
-            "auctionNumId": product_id,
+            "auctionNumId": "933910033859",
             "pageNo": page_no,
             "pageSize": page_size,
             "orderType": "",
@@ -143,11 +139,9 @@ class TmallCommentSpider:
         
         data_str = json.dumps(data_params, separators=(',', ':'))
         
-        # 生成签名
         token = self._extract_token(self.cookies_str) if self.cookies_str else ""
         signature = self._generate_signature(t, data_str, token)
         
-        # URL参数
         url_params = {
             'jsv': '2.7.4',
             'appKey': '12574478',
@@ -185,14 +179,14 @@ class TmallCommentSpider:
         except Exception as e:
             return {'success': False, 'error': str(e)}
     
-    def get_multiple_pages(self, product_id, max_pages=3, page_size=20, delay=2):
+    def get_multiple_pages(self, max_pages=3, page_size=20, delay=2):
         """获取多页评论"""
         all_comments = []
         
         for page in range(1, max_pages + 1):
             print(f"正在获取第 {page} 页评论...")
             
-            result = self.get_comments(product_id, page_no=page, page_size=page_size)
+            result = self.get_comments(page_no=page, page_size=page_size)
             
             if result['success']:
                 comments = result['comments']
@@ -214,9 +208,8 @@ class TmallCommentSpider:
     def save_to_file(self, comments, filename):
         """保存评论到文件"""
         try:
-            # 保存到当前目录的output文件夹
             os.makedirs('output', exist_ok=True)
-            filepath = os.path.join('output', filename)
+            filepath = f"output/{filename}"
             
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(comments, f, ensure_ascii=False, indent=2)
@@ -230,39 +223,22 @@ class TmallCommentSpider:
 
 def main():
     """主程序"""
-    print("🛒 淘宝/天猫商品评论爬虫")
+    print("🛒 淘宝/天猫商品评论爬虫 (自动配置版)")
     print("=" * 50)
     
-    # 从环境变量获取cookies，如果没有则使用默认值
-    cookies = os.getenv('COOKIES', """xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=fa69dcb6ac62e22452533f22ae5e27aa_1758298239087; _m_h5_tk_enc=178d568bcb785ebbe1cb127a8696ac1f; tfstk=gbAjBE9Qvhdz7-1T5t0zFAXyP6f6C4lEhP_9-FF4WsCA55THfE5wWGR113xRBI52u3G6-H6VBCSw1rAWA5PqmxYT115tYDlETEvcs1nUU97w6ibMyG3PH-59R2CtYDlzUzBm01KNEc0nVUIl5SQADhI-wNSRW-KODTERRwfO6hQOeUQF5oeOkS3WygbO6GKOH46RqNh9nAQ_hiTjJcz9VawRbEI765djstsBBRPT6Q_fhO8AVLJyNZ6fAOETYsRBJEdh5C0LCGTHHn7kfXi5wItXMT1s17f2RLKfFKi_NTvJ-CBWEDwH-EKXp9dxNq6Wie5AVC0gsip2WCW6MDUNDIx2N9Agc0SwLURAFHnzNhX6HpCv1DGR42VFAsrzCz631asEP4wgI1C1obpifImAHabXo4g7cOXAragjP4wgItQlzx3SPo6G.""")
+    spider = TmallCommentSpider()
     
-    # 从环境变量获取参数，如果没有则使用默认值
-    product_id = os.getenv('PRODUCT_ID', '933910033859')
-    max_pages = int(os.getenv('MAX_PAGES', '3'))
-    
-    # 创建爬虫实例
-    spider = TmallCommentSpider(cookies=cookies)
-    
-    print(f"🎯 商品ID: {product_id}")
-    print(f"📄 最大页数: {max_pages}")
+    print(f"🎯 商品ID: {spider.product_id}")
     print(f"📡 开始获取评论数据...")
     
-    # 测试单页获取
-    print(f"🔍 测试获取第1页数据...")
-    test_result = spider.get_comments(product_id, page_no=1, page_size=20)
-    print(f"📊 测试结果: {test_result}")
-    
-    # 获取评论数据
-    comments = spider.get_multiple_pages(product_id, max_pages=max_pages, page_size=20)
+    comments = spider.get_multiple_pages()
     
     if comments:
         print(f"\n🎉 成功获取 {len(comments)} 条评论")
         
-        # 保存到文件
-        filename = f"comments_{product_id}_{int(time.time())}.json"
+        filename = f"comments_{spider.product_id}_{int(time.time())}.json"
         spider.save_to_file(comments, filename)
         
-        # 显示前3条评论
         print(f"\n📝 评论预览:")
         for i, comment in enumerate(comments[:3], 1):
             print(f"\n🔸 评论 {i}:")

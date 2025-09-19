@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1758303150478",
+    "name": "笔记本",
+    "description": "商品-笔记本配置",
+    "config": {
+      "productId": "933910033859",
+      "cookies": "xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=fa69dcb6ac62e22452533f22ae5e27aa_1758298239087; _m_h5_tk_enc=178d568bcb785ebbe1cb127a8696ac1f; tfstk=gktEh9iqKgA6yYfd-hszQYdCY0SdRgljL315ELvld6fnwvBl4BOGru9IJYkP_QCCRMYCEuR11QZWd38T4KpJAvISpMpd2gcjGm9yppIRHaHpEH5GSt9g-kfo5GmkFbViGmiXK2XdVdcXVdhyW1Wlq9fhtODN39zhqaXHIAWlFW4uxQDZQTWfEyXlrOmGdtSlZQjoQlXPs9jlrQviOI_NucWc-A7BclhjFgbFipfamdtGKkfjD1qk4hXh8MFNsub6b97Fip-Vb6hPUExVJIc_R6Y2kIWXOcqegpAeoZx3sfSJCERP3HD0u_RpIH_MxYaABgLHoMxrgWveTBKpopc_7O8Mdh76mjrPJFApka-S1mIBlKtRoHmUM1_AUISH7fqeig8QwOmQV3LUZz7hBO5jQAyKzNg4yr4qPzURSQ6NGvpLyzQnZO5jQAz8ywnPQsMpp",
+      "maxPages": 3,
+      "pageSize": 20,
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "https://detail.tmall.com/",
+        "sec-ch-ua": "",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "",
+        "sec-fetch-dest": "script",
+        "sec-fetch-mode": "no-cors",
+        "sec-fetch-site": "same-site",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+      },
+      "baseUrl": "https://h5api.m.tmall.com/h5/mtop.taobao.rate.detaillist.get/6.0/",
+      "apiParams": {
+        "auctionNumId": "933910033859",
+        "pageNo": 1,
+        "pageSize": 20,
+        "orderType": "",
+        "searchImpr": "-8",
+        "expression": "",
+        "skuVids": "",
+        "rateSrc": "pc_rate_list",
+        "rateType": "",
+        "showTrueCount": false
+      }
+    },
+    "createdAt": "2025-09-19T17:32:30.478Z",
+    "updatedAt": "2025-09-19T17:32:30.478Z"
+  }
+]
