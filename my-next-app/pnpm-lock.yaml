@@ -8,12 +8,24 @@ importers:
 
   .:
     dependencies:
+      axios:
+        specifier: ^1.6.2
+        version: 1.12.2
+      chart.js:
+        specifier: ^4.4.0
+        version: 4.5.0
+      lucide-react:
+        specifier: ^0.294.0
+        version: 0.294.0(react@19.1.0)
       next:
         specifier: 15.5.3
         version: 15.5.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react:
         specifier: 19.1.0
         version: 19.1.0
+      react-chartjs-2:
+        specifier: ^5.2.0
+        version: 5.3.0(chart.js@4.5.0)(react@19.1.0)
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
@@ -138,6 +150,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha1-2xXWeByTHzolGj2sOVAcmKYIL9A=, tarball: http://r.npm.sankuai.com/@jridgewell/trace-mapping/download/@jridgewell/trace-mapping-0.3.31.tgz}
+
+  '@kurkle/color@0.3.4':
+    resolution: {integrity: sha1-TU/2d+FgkhT8ccWAEl3d3Yaryr8=, tarball: http://r.npm.sankuai.com/@kurkle/color/download/@kurkle/color-0.3.4.tgz}
 
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha1-PniouW5sM6bFF+GJTvvVOFp8tvI=, tarball: http://r.npm.sankuai.com/@napi-rs/wasm-runtime/download/@napi-rs/wasm-runtime-0.2.12.tgz}
@@ -565,6 +580,9 @@ packages:
     resolution: {integrity: sha1-UJyfymDq+FA0xoKYOBiOTkyP+ys=, tarball: http://r.npm.sankuai.com/async-function/download/async-function-1.0.0.tgz}
     engines: {node: '>= 0.4'}
 
+  asynckit@0.4.0:
+    resolution: {integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=, tarball: http://r.npm.sankuai.com/asynckit/download/asynckit-0.4.0.tgz}
+
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha1-pcw3XWoDwu/IelU/PgsVIt7xSEY=, tarball: http://r.npm.sankuai.com/available-typed-arrays/download/available-typed-arrays-1.0.7.tgz}
     engines: {node: '>= 0.4'}
@@ -572,6 +590,9 @@ packages:
   axe-core@4.10.3:
     resolution: {integrity: sha1-BBRZZax4lPrdusMIYeXY8Rv9FPw=, tarball: http://r.npm.sankuai.com/axe-core/download/axe-core-4.10.3.tgz}
     engines: {node: '>=4'}
+
+  axios@1.12.2:
+    resolution: {integrity: sha1-bDBzkBNs96InjQnOxjsTbfxubac=, tarball: http://r.npm.sankuai.com/axios/download/axios-1.12.2.tgz}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha1-KHaMdtDjz/IbxiqeLQtqwwBCoe4=, tarball: http://r.npm.sankuai.com/axobject-query/download/axobject-query-4.1.0.tgz}
@@ -613,6 +634,10 @@ packages:
     resolution: {integrity: sha1-qsTit3NKdAhnrrFr8CqtVWoeegE=, tarball: http://r.npm.sankuai.com/chalk/download/chalk-4.1.2.tgz}
     engines: {node: '>=10'}
 
+  chart.js@4.5.0:
+    resolution: {integrity: sha1-EaHvbEvvxRSxsLYT66wibErSdAs=, tarball: http://r.npm.sankuai.com/chart.js/download/chart.js-4.5.0.tgz}
+    engines: {pnpm: '>=8'}
+
   chownr@3.0.0:
     resolution: {integrity: sha1-mFXmTs0kCpzEJnzopKpdJKHaFeQ=, tarball: http://r.npm.sankuai.com/chownr/download/chownr-3.0.0.tgz}
     engines: {node: '>=18'}
@@ -626,6 +651,10 @@ packages:
 
   color-name@1.1.4:
     resolution: {integrity: sha1-wqCah6y95pVD3m9j+jmVyCbFNqI=, tarball: http://r.npm.sankuai.com/color-name/download/color-name-1.1.4.tgz}
+
+  combined-stream@1.0.8:
+    resolution: {integrity: sha1-w9RaizT9cwYxoRCoolIGgrMdWn8=, tarball: http://r.npm.sankuai.com/combined-stream/download/combined-stream-1.0.8.tgz}
+    engines: {node: '>= 0.8'}
 
   concat-map@0.0.1:
     resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=, tarball: http://r.npm.sankuai.com/concat-map/download/concat-map-0.0.1.tgz}
@@ -679,6 +708,10 @@ packages:
   define-properties@1.2.1:
     resolution: {integrity: sha1-EHgcxhbrlRqAoDS6/Kpzd/avK2w=, tarball: http://r.npm.sankuai.com/define-properties/download/define-properties-1.2.1.tgz}
     engines: {node: '>= 0.4'}
+
+  delayed-stream@1.0.0:
+    resolution: {integrity: sha1-3zrhmayt+31ECqrgsp4icrJOxhk=, tarball: http://r.npm.sankuai.com/delayed-stream/download/delayed-stream-1.0.0.tgz}
+    engines: {node: '>=0.4.0'}
 
   detect-libc@2.1.0:
     resolution: {integrity: sha1-PKgR9gp7UEsEgOUAitrMZgsLjE8=, tarball: http://r.npm.sankuai.com/detect-libc/download/detect-libc-2.1.0.tgz}
@@ -899,9 +932,22 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha1-Z8j62VRUp8er6/dLt47nSkQCM1g=, tarball: http://r.npm.sankuai.com/flatted/download/flatted-3.3.3.tgz}
 
+  follow-redirects@1.15.11:
+    resolution: {integrity: sha1-d31z1yqS+OxNLkEOtHNSpWuOg0A=, tarball: http://r.npm.sankuai.com/follow-redirects/download/follow-redirects-1.15.11.tgz}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+
   for-each@0.3.5:
     resolution: {integrity: sha1-1lBogCeCaSD+6wr3R+57lCGkHUc=, tarball: http://r.npm.sankuai.com/for-each/download/for-each-0.3.5.tgz}
     engines: {node: '>= 0.4'}
+
+  form-data@4.0.4:
+    resolution: {integrity: sha1-eEzczgZpqdaOlNEaxO6pgIjt0sQ=, tarball: http://r.npm.sankuai.com/form-data/download/form-data-4.0.4.tgz}
+    engines: {node: '>= 6'}
 
   function-bind@1.1.2:
     resolution: {integrity: sha1-LALYZNl/PqbIgwxGTL0Rq26rehw=, tarball: http://r.npm.sankuai.com/function-bind/download/function-bind-1.1.2.tgz}
@@ -1235,6 +1281,11 @@ packages:
     resolution: {integrity: sha1-ce5R+nvkyuwaY4OffmgtgTLTDK8=, tarball: http://r.npm.sankuai.com/loose-envify/download/loose-envify-1.4.0.tgz}
     hasBin: true
 
+  lucide-react@0.294.0:
+    resolution: {integrity: sha1-3EBuHn4vciz5Mhj+WzHPPJV3iBc=, tarball: http://r.npm.sankuai.com/lucide-react/download/lucide-react-0.294.0.tgz}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0
+
   magic-string@0.30.19:
     resolution: {integrity: sha1-zr6fEE5WVgLl0gmMXy55p3zIbak=, tarball: http://r.npm.sankuai.com/magic-string/download/magic-string-0.30.19.tgz}
 
@@ -1249,6 +1300,14 @@ packages:
   micromatch@4.0.8:
     resolution: {integrity: sha1-1m+hjzpHB2eJMgubGvMr2G2fogI=, tarball: http://r.npm.sankuai.com/micromatch/download/micromatch-4.0.8.tgz}
     engines: {node: '>=8.6'}
+
+  mime-db@1.52.0:
+    resolution: {integrity: sha1-u6vNwChZ9JhzAchW4zh85exDv3A=, tarball: http://r.npm.sankuai.com/mime-db/download/mime-db-1.52.0.tgz}
+    engines: {node: '>= 0.6'}
+
+  mime-types@2.1.35:
+    resolution: {integrity: sha1-OBqHG2KnNEUGYK497uRIE/cNlZo=, tarball: http://r.npm.sankuai.com/mime-types/download/mime-types-2.1.35.tgz}
+    engines: {node: '>= 0.6'}
 
   minimatch@3.1.2:
     resolution: {integrity: sha1-Gc0ZS/0+Qo8EmnCBfAONiatL41s=, tarball: http://r.npm.sankuai.com/minimatch/download/minimatch-3.1.2.tgz}
@@ -1403,12 +1462,21 @@ packages:
   prop-types@15.8.1:
     resolution: {integrity: sha1-Z9h78aaU9IQ1zzMsJK8QIUoxQLU=, tarball: http://r.npm.sankuai.com/prop-types/download/prop-types-15.8.1.tgz}
 
+  proxy-from-env@1.1.0:
+    resolution: {integrity: sha1-4QLxbKNVQkhldV0sno6k8k1Yw+I=, tarball: http://r.npm.sankuai.com/proxy-from-env/download/proxy-from-env-1.1.0.tgz}
+
   punycode@2.3.1:
     resolution: {integrity: sha1-AnQi4vrsCyXhVJw+G9gwm5EztuU=, tarball: http://r.npm.sankuai.com/punycode/download/punycode-2.3.1.tgz}
     engines: {node: '>=6'}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha1-SSkii7xyTfrEPg77BYyve2z7YkM=, tarball: http://r.npm.sankuai.com/queue-microtask/download/queue-microtask-1.2.3.tgz}
+
+  react-chartjs-2@5.3.0:
+    resolution: {integrity: sha1-LTKGM5p0K8f3e1gpwz66shX3FMw=, tarball: http://r.npm.sankuai.com/react-chartjs-2/download/react-chartjs-2-5.3.0.tgz}
+    peerDependencies:
+      chart.js: ^4.1.1
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   react-dom@19.1.0:
     resolution: {integrity: sha1-EzVY3so3+h1oJwjfiQSyUYZ5NiM=, tarball: http://r.npm.sankuai.com/react-dom/download/react-dom-19.1.0.tgz}
@@ -1782,6 +1850,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@kurkle/color@0.3.4': {}
 
   '@napi-rs/wasm-runtime@0.2.12':
     dependencies:
@@ -2181,11 +2251,21 @@ snapshots:
 
   async-function@1.0.0: {}
 
+  asynckit@0.4.0: {}
+
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0
 
   axe-core@4.10.3: {}
+
+  axios@1.12.2:
+    dependencies:
+      follow-redirects: 1.15.11
+      form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
 
   axobject-query@4.1.0: {}
 
@@ -2230,6 +2310,10 @@ snapshots:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
 
+  chart.js@4.5.0:
+    dependencies:
+      '@kurkle/color': 0.3.4
+
   chownr@3.0.0: {}
 
   client-only@0.0.1: {}
@@ -2239,6 +2323,10 @@ snapshots:
       color-name: 1.1.4
 
   color-name@1.1.4: {}
+
+  combined-stream@1.0.8:
+    dependencies:
+      delayed-stream: 1.0.0
 
   concat-map@0.0.1: {}
 
@@ -2291,6 +2379,8 @@ snapshots:
       define-data-property: 1.1.4
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
+
+  delayed-stream@1.0.0: {}
 
   detect-libc@2.1.0: {}
 
@@ -2661,9 +2751,19 @@ snapshots:
 
   flatted@3.3.3: {}
 
+  follow-redirects@1.15.11: {}
+
   for-each@0.3.5:
     dependencies:
       is-callable: 1.2.7
+
+  form-data@4.0.4:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
+      mime-types: 2.1.35
 
   function-bind@1.1.2: {}
 
@@ -2985,6 +3085,10 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
+  lucide-react@0.294.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+
   magic-string@0.30.19:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -2997,6 +3101,12 @@ snapshots:
     dependencies:
       braces: 3.0.3
       picomatch: 2.3.1
+
+  mime-db@1.52.0: {}
+
+  mime-types@2.1.35:
+    dependencies:
+      mime-db: 1.52.0
 
   minimatch@3.1.2:
     dependencies:
@@ -3150,9 +3260,16 @@ snapshots:
       object-assign: 4.1.1
       react-is: 16.13.1
 
+  proxy-from-env@1.1.0: {}
+
   punycode@2.3.1: {}
 
   queue-microtask@1.2.3: {}
+
+  react-chartjs-2@5.3.0(chart.js@4.5.0)(react@19.1.0):
+    dependencies:
+      chart.js: 4.5.0
+      react: 19.1.0
 
   react-dom@19.1.0(react@19.1.0):
     dependencies:
