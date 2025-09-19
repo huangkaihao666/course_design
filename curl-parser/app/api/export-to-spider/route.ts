@@ -297,7 +297,7 @@ if __name__ == "__main__":
 `;
 }
 
-async function updateOriginalSpider(spiderPath: string, config: SpiderConfig): string {
+async function updateOriginalSpider(spiderPath: string, config: SpiderConfig): Promise<string> {
   try {
     const originalCode = await fs.readFile(spiderPath, 'utf-8');
     
@@ -308,7 +308,7 @@ async function updateOriginalSpider(spiderPath: string, config: SpiderConfig): s
     );
     
     // 更新cookies
-    const cookiesRegex = /cookies = """[^"]*"""/s;
+    const cookiesRegex = /cookies = """[\s\S]*?"""/;
     const newCookiesStr = `cookies = """${config.cookies}"""`;
     updatedCode = updatedCode.replace(cookiesRegex, newCookiesStr);
     
