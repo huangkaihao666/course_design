@@ -17,8 +17,8 @@ export async function crawlComments(productId: string, maxPages: number = 3, coo
 }
 
 // 获取已爬取的评论
-export async function getComments(productId: string) {
-  const response = await api.get(`/crawl?productId=${productId}`);
+export async function getComments(productId: string, maxPages: number = 3) {
+  const response = await api.get(`/crawl?productId=${productId}&maxPages=${maxPages}`);
   return response.data;
 }
 

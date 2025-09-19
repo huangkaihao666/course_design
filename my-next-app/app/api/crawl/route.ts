@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');
+    const maxPages = parseInt(searchParams.get('maxPages') || '3');
 
     if (!productId) {
       return NextResponse.json(
@@ -73,51 +74,48 @@ export async function GET(request: NextRequest) {
     }
 
     const outputDir = path.join(process.cwd(), '..', 'pachong', 'output');
-    console.log(`查找商品 ${productId} 的数据，输出目录: ${outputDir}`);
+    console.log(`开始爬取商品 ${productId} 的数据，页数: ${maxPages}，输出目录: ${outputDir}`);
     
-    let comments = await readLatestComments(outputDir, productId);
-    console.log(`找到 ${comments.length} 条现有评论`);
-
-    // 如果没有找到数据，自动调用爬虫
-    if (comments.length === 0) {
-      console.log(`没有找到商品 ${productId} 的数据，开始自动爬取...`);
+    // 总是重新爬取，不读取缓存
+    console.log(`开始自动爬取 ${maxPages} 页...`);
+    
+    let comments: Comment[] = [];
+    
+    try {
+      const spiderPath = path.join(process.cwd(), '..', 'pachong', 'spider.py');
+      console.log(`爬虫脚本路径: ${spiderPath}`);
       
-      try {
-        const spiderPath = path.join(process.cwd(), '..', 'pachong', 'spider.py');
-        console.log(`爬虫脚本路径: ${spiderPath}`);
+      const result = await runSpider(spiderPath, productId, maxPages, 'xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=fa69dcb6ac62e22452533f22ae5e27aa_1758298239087; _m_h5_tk_enc=178d568bcb785ebbe1cb127a8696ac1f; tfstk=gbAjBE9Qvhdz7-1T5t0zFAXyP6f6C4lEhP_9-FF4WsCA55THfE5wWGR113xRBI52u3G6-H6VBCSw1rAWA5PqmxYT115tYDlETEvcs1nUU97w6ibMyG3PH-59R2CtYDlzUzBm01KNEc0nVUIl5SQADhI-wNSRW-KODTERRwfO6hQOeUQF5oeOkS3WygbO6GKOH46RqNh9nAQ_hiTjJcz9VawRbEI765djstsBBRPT6Q_fhO8AVLJyNZ6fAOETYsRBJEdh5C0LCGTHHn7kfXi5wItXMT1s17f2RLKfFKi_NTvJ-CBWEDwH-EKXp9dxNq6Wie5AVC0gsip2WCW6MDUNDIx2N9Agc0SwLURAFHnzNhX6HpCv1DGR42VFAsrzCz631asEP4wgI1C1obpifImAHabXo4g7cOXAragjP4wgItQlzx3SPo6G.');
+      console.log(`爬虫执行结果:`, result);
+      
+      if (result.success) {
+        // 使用轮询等待文件写入完成
+        console.log('等待文件写入完成...');
+        let attempts = 0;
+        const maxAttempts = 30; // 最多等待30秒
+        const pollInterval = 1000; // 每秒检查一次
         
-        const result = await runSpider(spiderPath, productId, 3, 'xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=fa69dcb6ac62e22452533f22ae5e27aa_1758298239087; _m_h5_tk_enc=178d568bcb785ebbe1cb127a8696ac1f; tfstk=gbAjBE9Qvhdz7-1T5t0zFAXyP6f6C4lEhP_9-FF4WsCA55THfE5wWGR113xRBI52u3G6-H6VBCSw1rAWA5PqmxYT115tYDlETEvcs1nUU97w6ibMyG3PH-59R2CtYDlzUzBm01KNEc0nVUIl5SQADhI-wNSRW-KODTERRwfO6hQOeUQF5oeOkS3WygbO6GKOH46RqNh9nAQ_hiTjJcz9VawRbEI765djstsBBRPT6Q_fhO8AVLJyNZ6fAOETYsRBJEdh5C0LCGTHHn7kfXi5wItXMT1s17f2RLKfFKi_NTvJ-CBWEDwH-EKXp9dxNq6Wie5AVC0gsip2WCW6MDUNDIx2N9Agc0SwLURAFHnzNhX6HpCv1DGR42VFAsrzCz631asEP4wgI1C1obpifImAHabXo4g7cOXAragjP4wgItQlzx3SPo6G.');
-        console.log(`爬虫执行结果:`, result);
-        
-        if (result.success) {
-          // 使用轮询等待文件写入完成
-          console.log('等待文件写入完成...');
-          let attempts = 0;
-          const maxAttempts = 30; // 最多等待30秒
-          const pollInterval = 1000; // 每秒检查一次
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          comments = await readLatestComments(outputDir, productId);
           
-          while (attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, pollInterval));
-            comments = await readLatestComments(outputDir, productId);
-            
-            if (comments.length > 0) {
-              console.log(`自动爬取完成，获取到 ${comments.length} 条评论`);
-              break;
-            }
-            
-            attempts++;
-            console.log(`等待中... (${attempts}/${maxAttempts})`);
+          if (comments.length > 0) {
+            console.log(`自动爬取完成，获取到 ${comments.length} 条评论`);
+            break;
           }
           
-          if (comments.length === 0) {
-            console.log('等待超时，未获取到数据');
-          }
-        } else {
-          console.error('自动爬取失败:', result.error);
+          attempts++;
+          console.log(`等待中... (${attempts}/${maxAttempts})`);
         }
-      } catch (error) {
-        console.error('爬虫调用异常:', error);
+        
+        if (comments.length === 0) {
+          console.log('等待超时，未获取到数据');
+        }
+      } else {
+        console.error('自动爬取失败:', result.error);
       }
+    } catch (error) {
+      console.error('爬虫调用异常:', error);
     }
 
     return NextResponse.json({

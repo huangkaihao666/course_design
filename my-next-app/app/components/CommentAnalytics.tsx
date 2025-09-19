@@ -29,6 +29,7 @@ ChartJS.register(
 export default function CommentAnalytics() {
   const [productId, setProductId] = useState('889955499609'); // 改为有数据的ID
   const [cookies, setCookies] = useState('');
+  const [maxPages, setMaxPages] = useState(3); // 添加页数状态
   const [comments, setComments] = useState<CommentWithSentiment[]>([]);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setCrawlLoading] = useState(false);
@@ -41,8 +42,8 @@ export default function CommentAnalytics() {
       setAnalyzing(true);
       setError(null);
       
-      console.log('开始加载商品ID:', productId);
-      const result = await getComments(productId);
+      console.log('开始加载商品ID:', productId, '页数:', maxPages);
+      const result = await getComments(productId, maxPages);
       console.log('API返回结果:', result);
       
       if (result.success) {
@@ -80,7 +81,7 @@ export default function CommentAnalytics() {
       setCrawlLoading(true);
       setError(null);
       
-      const result = await crawlComments(productId, 3, cookies);
+      const result = await crawlComments(productId, maxPages, cookies);
       if (result.success) {
         const analysisResult = await analyzeSentiment(result.data);
         setComments(analysisResult.comments);
@@ -100,13 +101,13 @@ export default function CommentAnalytics() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (productId.trim()) {
-        console.log('开始加载商品ID:', productId);
+        console.log('开始加载商品ID:', productId, '页数:', maxPages);
         loadExistingComments();
       }
     }, 500); // 减少防抖时间到0.5秒，让API有更多时间处理
 
     return () => clearTimeout(timer);
-  }, [productId]);
+  }, [productId, maxPages]);
 
   // 情感分布图表数据
   const sentimentChartData = {
@@ -156,7 +157,7 @@ export default function CommentAnalytics() {
 
         {/* 控制面板 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 商品ID
@@ -167,6 +168,20 @@ export default function CommentAnalytics() {
                 onChange={(e) => setProductId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="请输入商品ID（如：549111425823），系统会自动加载数据"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                爬取页数
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={maxPages}
+                onChange={(e) => setMaxPages(parseInt(e.target.value) || 1)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="1-10页"
               />
             </div>
             <div>
@@ -205,9 +220,9 @@ export default function CommentAnalytics() {
           
           {analyzing && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md">
-              🔍 正在自动加载商品 {productId} 的数据...
+              🔍 正在自动加载商品 {productId} 的数据（{maxPages}页）...
               <div className="mt-2 text-sm text-blue-600">
-                如果没有现有数据，系统将自动爬取新数据，请稍候...
+                如果没有现有数据，系统将自动爬取 {maxPages} 页新数据，请稍候...
               </div>
             </div>
           )}
