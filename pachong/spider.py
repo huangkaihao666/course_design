@@ -234,10 +234,10 @@ def main():
     print("=" * 50)
     
     # 设置cookies - 请替换为您的真实cookies
-    cookies = """xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; mtop_partitioned_detect=1; _m_h5_tk=5f7522c0f877ac5dafdf35b8a07eb32f_1758283229092; _m_h5_tk_enc=3c5b2a313057701949621ec27491ac11; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; tfstk=g80qHdYeiPDWOceYm4aNaIhj6CzYvPJBgVw_sfcgG-2DBIFg7xMujNGXDCRaUAebcrmbsNk7FA_sGVoR7XhtlIU6MrhYWPvBdeGZMjUT-tfViqylq5GlmiqMVzYi1dXkdeTIinVY5bvI5bKr38VgSS20nzAzOWs0SlVmZQPg1tjGoAAya5NOoO20sTcu9S4gIAqMazV__PVmIlArZX6_4k8ztoAz0VY5C3fTjJc0UNbh9SEcajI15NTQGoe3mV_gV4P40Jcq8zyvQ5on8oHHFiwmYDHUOxTluvlm3DqnoTvzWbiEQWuDtMyZHb0bqqA1v7UtmD4m7pWmgxkxkDcDFgPrqjgzV2vF7onoHDEZ5LTLlDGIWk0Du9e7v5kUo0JluvjzAOFklNgt0Ojam7FzdQRPMhrWYGIhYhsOXuD_aJOxMGITmdVzdQRPXGEv77yBMjC"""
+    cookies = """xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=d0ba69fe3dfea9427db9ebb23fa37c2f_1758290193193; _m_h5_tk_enc=656e404dfade31fd0f5c1ffb5352fa51; tfstk=gNKnLj4731Nj7NlOWhsIJQxfCv3tJMs5ZQERwgCr71562eC-R0DlsK7KdQdJS_Aws6JdwvtkSB9VJQvSdT5yaQfJJVnvdps54jQoDmpI1uXUaBfFaRkPnTaEBwzd4KDV4jhxXPeNRXIywNirbhvN1TqUY_Rzb1Wc_TzF4Q5N7tWYTgRyaNWNHtNULyWP_O51Ug5yagkGb16R4_li5jfc4GxZapPrtX5RohXh-sJZluqz_9PAipS4qubBaw2pL1qz4h8uug3VicVN6LJXzNxoXlsWBEAkzCkz4_YNnIXv9crh4FRMmZJsik1H7BtlvZiuEOYDQBxwIYUMZCJXlM-ENkCBzd-P6Hk8qs8vhGX62fZFZF8yvws7TXXMxKxkrgWU7rl_Ru6Zehz7PwW1IshmRWjgHlYDZADglAQFC9NxIA4WUwW1IsHiIr7l8O6QM"""
     
     # 商品ID - 请替换为您要爬取的商品ID
-    product_id = "901834866810"
+    product_id = "969932796642"
     
     # 创建爬虫实例
     spider = TmallCommentSpider(cookies=cookies)
@@ -246,7 +246,7 @@ def main():
     print(f"📡 开始获取评论数据...")
     
     # 获取评论数据（前3页，每页20条）
-    comments = spider.get_multiple_pages(product_id, max_pages=3, page_size=20)
+    comments = spider.get_multiple_pages(product_id, max_pages=1, page_size=10)
     
     if comments:
         print(f"\n🎉 成功获取 {len(comments)} 条评论")
