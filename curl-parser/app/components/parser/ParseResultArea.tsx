@@ -14,13 +14,15 @@ interface ParseResultAreaProps {
   loading: boolean;
   onExportConfig: (config: SpiderConfig) => void;
   onExportToSpiderSystem: (config: SpiderConfig) => void;
+  onCopyToClipboard: (text: string) => void;
 }
 
 export default function ParseResultArea({
   parsedData,
   loading,
   onExportConfig,
-  onExportToSpiderSystem
+  onExportToSpiderSystem,
+  onCopyToClipboard
 }: ParseResultAreaProps) {
   if (!parsedData) return null;
 
@@ -53,14 +55,40 @@ export default function ParseResultArea({
               <p className="text-xs sm:text-sm text-gray-700 font-bold break-words">{parsedData.config.productId}</p>
             </div>
           </div>
+          
+          {/* Cookie详细展示 */}
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-yellow-700">🍪 Cookies ({Object.keys(parsedData.parsed.cookies).length} 个)</label>
+              <button
+                onClick={() => onCopyToClipboard(parsedData.config.cookies)}
+                className="px-2 py-1 text-xs bg-yellow-200 hover:bg-yellow-300 text-yellow-800 rounded-lg transition-colors duration-200"
+              >
+                📋 复制
+              </button>
+            </div>
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {Object.keys(parsedData.parsed.cookies).length > 0 ? (
+                Object.entries(parsedData.parsed.cookies).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between bg-white p-2 rounded-lg border border-yellow-200">
+                    <span className="text-xs font-mono text-gray-700 font-semibold">{key}:</span>
+                    <span className="text-xs font-mono text-gray-600 break-all ml-2">{value}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-500 italic">暂无Cookie</p>
+              )}
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
               <label className="block text-xs sm:text-sm font-semibold text-green-700 mb-1">📋 请求头</label>
               <p className="text-xs sm:text-sm text-gray-700 font-bold">{Object.keys(parsedData.parsed.headers).length} 个</p>
             </div>
-            <div className="p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
-              <label className="block text-xs sm:text-sm font-semibold text-yellow-700 mb-1">🍪 Cookies</label>
-              <p className="text-xs sm:text-sm text-gray-700 font-bold">{Object.keys(parsedData.parsed.cookies).length} 个</p>
+            <div className="p-3 sm:p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100">
+              <label className="block text-xs sm:text-sm font-semibold text-indigo-700 mb-1">🔗 查询参数</label>
+              <p className="text-xs sm:text-sm text-gray-700 font-bold">{Object.keys(parsedData.parsed.queryParams).length} 个</p>
             </div>
           </div>
         </div>

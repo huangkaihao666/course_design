@@ -228,6 +228,7 @@ export default function CurlParser() {
               loading={loading}
               onExportConfig={exportConfig}
               onExportToSpiderSystem={exportToSpiderSystem}
+              onCopyToClipboard={copyToClipboard}
             />
 
             {/* 保存配置 */}
