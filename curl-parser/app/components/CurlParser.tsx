@@ -9,6 +9,7 @@ import CurlInputArea from './parser/CurlInputArea';
 import ParseResultArea from './parser/ParseResultArea';
 import SaveConfigArea from './parser/SaveConfigArea';
 import ConfigManagementArea from './parser/ConfigManagementArea';
+import DataManagementArea from './parser/DataManagementArea';
 
 export default function CurlParser() {
   const [curlInput, setCurlInput] = useState('');
@@ -23,7 +24,7 @@ export default function CurlParser() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'parser' | 'configs'>('parser');
+  const [activeTab, setActiveTab] = useState<'parser' | 'configs' | 'database'>('parser');
 
   // 加载保存的配置
   useEffect(() => {
@@ -83,27 +84,49 @@ export default function CurlParser() {
     }
 
     try {
-      const response = await fetch('/api/config', {
+      // 保存到数据库
+      const dbResponse = await fetch('/api/save-parse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: configName,
-          description: configDescription,
-          config: parsedData.config,
+          parsedData,
+          configName,
+          configDescription,
         }),
       });
 
-      const result = await response.json();
+      const dbResult = await dbResponse.json();
 
-      if (result.success) {
-        setSuccess('配置保存成功！');
-        setConfigName('');
-        setConfigDescription('');
-        loadConfigs();
+      if (dbResult.success) {
+        // 同时保存到本地配置文件（保持原有功能）
+        const response = await fetch('/api/config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: configName,
+            description: configDescription,
+            config: parsedData.config,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setSuccess('配置已保存到数据库和本地文件！');
+          setConfigName('');
+          setConfigDescription('');
+          loadConfigs();
+        } else {
+          setSuccess('配置已保存到数据库，但本地文件保存失败');
+          setConfigName('');
+          setConfigDescription('');
+        }
       } else {
-        setError(result.error || '保存失败');
+        setError(dbResult.error || '数据库保存失败');
       }
     } catch (error) {
       setError('保存请求失败');
@@ -254,6 +277,12 @@ export default function CurlParser() {
             onExportToSpiderSystem={exportToSpiderSystem}
             onCopyToClipboard={copyToClipboard}
             onSwitchToParser={() => setActiveTab('parser')}
+          />
+        )}
+
+        {activeTab === 'database' && (
+          <DataManagementArea
+            onCopyToClipboard={copyToClipboard}
           />
         )}
       </div>

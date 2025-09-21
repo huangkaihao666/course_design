@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Code, Database } from 'lucide-react';
+import { Code, Database, Server } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'parser' | 'configs';
-  setActiveTab: (tab: 'parser' | 'configs') => void;
+  activeTab: 'parser' | 'configs' | 'database';
+  setActiveTab: (tab: 'parser' | 'configs' | 'database') => void;
 }
 
 export default function Header({ activeTab, setActiveTab }: HeaderProps) {
@@ -53,6 +53,18 @@ export default function Header({ activeTab, setActiveTab }: HeaderProps) {
               <Database className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">配置管理</span>
               <span className="sm:hidden">配置</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('database')}
+              className={`flex-1 py-2 sm:py-3 px-3 sm:px-6 rounded-xl font-medium text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 ${
+                activeTab === 'database'
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Server className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">数据库</span>
+              <span className="sm:hidden">数据</span>
             </button>
           </nav>
         </div>

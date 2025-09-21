@@ -1,0 +1,53 @@
+{
+  "product_info": {
+    "success": true,
+    "product_name": "打火机商品",
+    "product_url": "",
+    "shop_name": ""
+  },
+  "comments": [
+    {
+      "user_nick": "匿名买家",
+      "content": "打十下能着一下",
+      "rating": 7,
+      "date": "2025年6月5日",
+      "useful_count": 0,
+      "reply": "打一次 着10次",
+      "sku_info": "黑拉丝礼盒装送火石",
+      "pics": []
+    },
+    {
+      "user_nick": "匿名买家",
+      "content": "该用户觉得商品非常好，给出好评",
+      "rating": 8,
+      "date": "2025年6月11日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "黑拉丝 不忘初心",
+      "pics": []
+    },
+    {
+      "user_nick": "教**8",
+      "content": "该用户觉得商品非常好，给出好评",
+      "rating": 10,
+      "date": "2025年6月1日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "金竖条礼盒送火石+200ml毫升气体",
+      "pics": []
+    },
+    {
+      "user_nick": "骑**说",
+      "content": "该用户觉得商品非常好，给出好评",
+      "rating": 4,
+      "date": "2025年4月21日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "新款黑拉丝 透明气窗",
+      "pics": []
+    }
+  ],
+  "crawl_time": 1758443518,
+  "product_id": "642440512216",
+  "max_pages": 2
+}

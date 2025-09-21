@@ -123,6 +123,121 @@ class TmallCommentSpider:
         
         return comments
     
+    def get_product_info_from_comments(self, comments):
+        """从评论数据中推断商品信息"""
+        if not comments or len(comments) == 0:
+            return {
+                'success': True,
+                'product_name': '未知商品',
+                'product_url': '',
+                'shop_name': ''
+            }
+        
+        # 从评论的SKU信息推断商品类型
+        sku_keywords = []
+        for comment in comments[:3]:  # 只检查前3条评论
+            sku_info = comment.get('sku_info', '')
+            if sku_info:
+                sku_keywords.append(sku_info)
+        
+        # 根据SKU关键词推断商品类型
+        product_name = '商品'
+        if any('打火机' in sku or '火石' in sku for sku in sku_keywords):
+            product_name = '打火机商品'
+        elif any('礼盒' in sku for sku in sku_keywords):
+            product_name = '礼盒商品'
+        elif any('笔记本' in sku or '本子' in sku for sku in sku_keywords):
+            product_name = '笔记本商品'
+        elif any('手机' in sku for sku in sku_keywords):
+            product_name = '手机商品'
+        elif any('衣服' in sku or '服装' in sku for sku in sku_keywords):
+            product_name = '服装商品'
+        elif any('鞋子' in sku or '鞋' in sku for sku in sku_keywords):
+            product_name = '鞋类商品'
+        elif any('包' in sku for sku in sku_keywords):
+            product_name = '包类商品'
+        
+        return {
+            'success': True,
+            'product_name': product_name,
+            'product_url': '',
+            'shop_name': ''
+        }
+
+    def get_product_info(self, product_id):
+        """获取商品基本信息"""
+        try:
+            # 先尝试获取评论数据
+            result = self.get_comments(product_id, page_no=1, page_size=3)
+            
+            if result['success'] and 'comments' in result:
+                # 从评论数据中推断商品信息
+                return self.get_product_info_from_comments(result['comments'])
+            elif result['success'] and 'data' in result:
+                data = result['data']
+                print(f"调试 - 评论数据字段: {list(data.keys())}")
+                
+                # 尝试从不同字段获取商品信息
+                product_name = f'商品ID: {product_id}'
+                product_url = ''
+                shop_name = ''
+                
+                # 检查是否有商品相关字段
+                if 'item' in data:
+                    item = data['item']
+                    product_name = item.get('title', product_name)
+                    product_url = item.get('url', product_url)
+                    shop_name = item.get('shopName', shop_name)
+                elif 'auction' in data:
+                    auction = data['auction']
+                    product_name = auction.get('title', product_name)
+                    product_url = auction.get('url', product_url)
+                    shop_name = auction.get('shopName', shop_name)
+                elif 'product' in data:
+                    product = data['product']
+                    product_name = product.get('title', product_name)
+                    product_url = product.get('url', product_url)
+                    shop_name = product.get('shopName', shop_name)
+                
+                # 如果还是没有找到商品名称，尝试从评论的SKU信息推断
+                if product_name == f'商品ID: {product_id}' and 'rateList' in data:
+                    rate_list = data['rateList']
+                    if rate_list and len(rate_list) > 0:
+                        # 从第一个评论的SKU信息推断商品类型
+                        first_comment = rate_list[0]
+                        sku_info = first_comment.get('skuValueStr', '')
+                        if sku_info:
+                            # 根据SKU信息推断商品类型
+                            if '打火机' in sku_info or '火石' in sku_info:
+                                product_name = f'打火机商品 - {product_id}'
+                            elif '礼盒' in sku_info:
+                                product_name = f'礼盒商品 - {product_id}'
+                            else:
+                                product_name = f'商品 - {product_id}'
+                
+                return {
+                    'success': True,
+                    'product_name': product_name,
+                    'product_url': product_url,
+                    'shop_name': shop_name
+                }
+            
+            # 如果都失败了，返回默认值
+            return {
+                'success': True,
+                'product_name': f'商品ID: {product_id}',
+                'product_url': '',
+                'shop_name': ''
+            }
+        except Exception as e:
+            print(f"获取商品信息失败: {e}")
+            return {
+                'success': False,
+                'product_name': f'商品ID: {product_id}',
+                'product_url': '',
+                'shop_name': ''
+            }
+
     def get_comments(self, product_id, page_no=1, page_size=20):
         """获取商品评论"""
         # 构建请求参数
@@ -245,6 +360,12 @@ def main():
     
     print(f"🎯 商品ID: {product_id}")
     print(f"📄 最大页数: {max_pages}")
+    print(f"📡 开始获取商品信息...")
+    
+    # 获取商品信息
+    product_info = spider.get_product_info(product_id)
+    print(f"📦 商品信息: {product_info}")
+    
     print(f"📡 开始获取评论数据...")
     
     # 测试单页获取
@@ -258,9 +379,16 @@ def main():
     if comments:
         print(f"\n🎉 成功获取 {len(comments)} 条评论")
         
-        # 保存到文件
+        # 保存到文件，包含商品信息
+        data_to_save = {
+            'product_info': product_info,
+            'comments': comments,
+            'crawl_time': int(time.time()),
+            'product_id': product_id,
+            'max_pages': max_pages
+        }
         filename = f"comments_{product_id}_{int(time.time())}.json"
-        spider.save_to_file(comments, filename)
+        spider.save_to_file(data_to_save, filename)
         
         # 显示前3条评论
         print(f"\n📝 评论预览:")

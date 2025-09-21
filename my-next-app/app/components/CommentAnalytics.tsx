@@ -15,6 +15,7 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import { Search, Download, RefreshCw, TrendingUp, MessageCircle, Star } from 'lucide-react';
 import { crawlComments, getComments, analyzeSentiment, getSentimentColor, getSentimentText, getStarRating } from '../utils/api';
 import { CommentWithSentiment, Statistics } from '../types';
+import ProductSelector from './ProductSelector';
 
 ChartJS.register(
   CategoryScale,
@@ -35,6 +36,7 @@ export default function CommentAnalytics() {
   const [loading, setCrawlLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showProductSelector, setShowProductSelector] = useState(false);
 
   // 加载已有评论数据
   const loadExistingComments = async () => {
@@ -83,6 +85,39 @@ export default function CommentAnalytics() {
       
       const result = await crawlComments(productId, maxPages, cookies);
       if (result.success) {
+        const analysisResult = await analyzeSentiment(result.data);
+        setComments(analysisResult.comments);
+        setStatistics(analysisResult.statistics);
+      } else {
+        setError(result.error || '爬取失败');
+      }
+    } catch (err) {
+      setError('爬取评论失败');
+      console.error(err);
+    } finally {
+      setCrawlLoading(false);
+    }
+  };
+
+  // 处理商品选择
+  const handleProductSelect = (selectedProductId: string) => {
+    setProductId(selectedProductId);
+    setShowProductSelector(false);
+  };
+
+  // 处理从数据库爬取
+  const handleDatabaseCrawl = async (selectedProductId: string, selectedMaxPages: number) => {
+    setProductId(selectedProductId);
+    setMaxPages(selectedMaxPages);
+    setShowProductSelector(false);
+    
+    try {
+      setCrawlLoading(true);
+      setError(null);
+      
+      // 使用数据库配置进行爬取
+      const result = await getComments(selectedProductId, selectedMaxPages);
+      if (result.success && result.data && result.data.length > 0) {
         const analysisResult = await analyzeSentiment(result.data);
         setComments(analysisResult.comments);
         setStatistics(analysisResult.statistics);
@@ -157,6 +192,26 @@ export default function CommentAnalytics() {
 
         {/* 控制面板 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">商品分析控制</h2>
+            <button
+              onClick={() => setShowProductSelector(!showProductSelector)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2"
+            >
+              <Search className="w-4 h-4" />
+              从数据库选择商品
+            </button>
+          </div>
+
+          {showProductSelector && (
+            <div className="mb-6">
+              <ProductSelector
+                onProductSelect={handleProductSelect}
+                onCrawlStart={handleDatabaseCrawl}
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
