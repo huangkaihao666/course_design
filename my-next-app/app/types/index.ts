@@ -44,3 +44,41 @@ export interface AnalysisResult {
   comments: CommentWithSentiment[];
   statistics: Statistics;
 }
+
+// AIBox 工作流相关类型定义
+export interface AIBoxRequest {
+  botKey: string;
+  humanId: string;
+  workflowKey: string;
+  ext: Record<string, any>;
+  token: string;
+}
+
+export interface AIBoxResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+  llmErrorCode?: string | number;
+}
+
+export interface AIBoxWorkflowConfig {
+  botKey: string;
+  workflowKey: string;
+  humanId: string;
+  token: string;
+}
+
+export interface CommentAnalysisRequest {
+  reviewBody: string;
+  avgPrice?: string;
+  cityName?: string;
+  dpPoiName?: string;
+  reviewCount?: string;
+  overallScore?: string;
+  platformName?: string;
+}
+
+export interface CommentAnalysisResult {
+  tag: string;
+  reason: string;
+}
