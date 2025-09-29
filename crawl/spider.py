@@ -12,6 +12,7 @@ import re
 import hashlib
 import os
 from fake_useragent import UserAgent
+from database_reader import DatabaseReader
 
 
 class TmallCommentSpider:
@@ -333,22 +334,61 @@ def main():
     print("🛒 淘宝/天猫商品评论爬虫")
     print("=" * 50)
     
-    # 从环境变量获取cookies，如果没有则使用默认值
-    cookies = os.getenv('COOKIES', """xlly_s=1; dnk=tb52079771; tracknick=tb52079771; lid=tb52079771; _l_g_=Ug%3D%3D; unb=2874571822; lgc=tb52079771; cookie1=VT5Zk6h2%2BqNVOo4UBujinMRjF69%2FJohkVTOspWEVctU%3D; login=true; wk_cookie2=11ef152c8328fbab96c52320c81863f0; cookie17=UUBfRqE2sd0fJQ%3D%3D; cookie2=1a394e6c096d55ee8ed6c05e8a3f252b; _nk_=tb52079771; cancelledSubSites=empty; sg=12e; t=8f8c6b0acfd465866dd8e9e2ef3f1e52; sn=; _tb_token_=e7f5e347e7467; wk_unb=UUBfRqE2sd0fJQ%3D%3D; isg=BG5utQ0ZipRSfP7w7mPZnAMPv8IwbzJpXA3g55g32nEsew7VAP-CeRR4MueXpCqB; havana_sdkSilent=1758304110832; uc1=pas=0&cookie21=Vq8l%2BKCLjhS4UhJVbhgU&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D&cookie15=UIHiLt3xD8xYTw%3D%3D&cookie14=UoYbw12iqFcnxw%3D%3D&existShop=false; uc3=vt3=F8dD2k%2FkqtAXbdSM%2B0g%3D&lg2=U%2BGCWk%2F75gdr5Q%3D%3D&nk2=F5RAQI%2B%2FeGflCQ%3D%3D&id2=UUBfRqE2sd0fJQ%3D%3D; uc4=id4=0%40U2LNaXTVr%2BzfReMs%2FDEO6yqBBCVA&nk4=0%40FY4L7HCZjsAW%2BYbe61%2Be7QuxIflL; havana_lgc_exp=1789379310832; sgcookie=E100XRzzBI4FsakfR5IEXtyUYgxxKEGtdnkyO2fJpXfAjhUL2E2Q2Y5xL5OImz3taTq7qqEjpR8ahvSks4KoAceJyDoKXKyKy9k72W%2FJw3RpVjg33x7b2gWd3q%2FBl6UQPMEn; csg=fc7d23e6; mtop_partitioned_detect=1; _m_h5_tk=fa69dcb6ac62e22452533f22ae5e27aa_1758298239087; _m_h5_tk_enc=178d568bcb785ebbe1cb127a8696ac1f; tfstk=gbAjBE9Qvhdz7-1T5t0zFAXyP6f6C4lEhP_9-FF4WsCA55THfE5wWGR113xRBI52u3G6-H6VBCSw1rAWA5PqmxYT115tYDlETEvcs1nUU97w6ibMyG3PH-59R2CtYDlzUzBm01KNEc0nVUIl5SQADhI-wNSRW-KODTERRwfO6hQOeUQF5oeOkS3WygbO6GKOH46RqNh9nAQ_hiTjJcz9VawRbEI765djstsBBRPT6Q_fhO8AVLJyNZ6fAOETYsRBJEdh5C0LCGTHHn7kfXi5wItXMT1s17f2RLKfFKi_NTvJ-CBWEDwH-EKXp9dxNq6Wie5AVC0gsip2WCW6MDUNDIx2N9Agc0SwLURAFHnzNhX6HpCv1DGR42VFAsrzCz631asEP4wgI1C1obpifImAHabXo4g7cOXAragjP4wgItQlzx3SPo6G.""")
-    
-    # 从环境变量获取参数，如果没有则使用默认值
+    # 从环境变量获取参数
     product_id = os.getenv('PRODUCT_ID', '933910033859')
     max_pages = int(os.getenv('MAX_PAGES', '3'))
+    use_database = os.getenv('USE_DATABASE', 'true').lower() == 'true'
+    
+    print(f"🎯 商品ID: {product_id}")
+    print(f"📄 最大页数: {max_pages}")
+    print(f"🗄️ 使用数据库: {use_database}")
+    
+    # 初始化数据库读取器
+    db_reader = None
+    if use_database:
+        try:
+            db_reader = DatabaseReader()
+            print("✅ 数据库连接成功")
+        except Exception as e:
+            print(f"❌ 数据库连接失败: {e}")
+            print("⚠️ 将使用环境变量参数")
+            use_database = False
+    
+    # 获取配置参数
+    cookies = ""
+    actual_max_pages = max_pages
+    product_name = f"商品ID: {product_id}"
+    
+    if use_database and db_reader:
+        # 从数据库获取配置
+        print("🔍 正在从数据库获取配置...")
+        config = db_reader.get_spider_config_by_product_id(product_id)
+        
+        if config:
+            cookies = config.get('cookies', '')
+            actual_max_pages = config.get('max_pages', max_pages)
+            product_name = config.get('product_name', product_name)
+            print(f"✅ 从数据库获取配置成功:")
+            print(f"   - cookies长度: {len(cookies)}")
+            print(f"   - maxPages: {actual_max_pages}")
+            print(f"   - 商品名称: {product_name}")
+        else:
+            print("❌ 数据库中未找到该商品的配置，使用默认参数")
+            cookies = os.getenv('COOKIES', '')
+    else:
+        # 使用环境变量参数
+        cookies = os.getenv('COOKIES', '')
+        print("⚠️ 使用环境变量参数")
     
     # 创建爬虫实例
     spider = TmallCommentSpider(cookies=cookies)
     
-    print(f"🎯 商品ID: {product_id}")
-    print(f"📄 最大页数: {max_pages}")
     print(f"📡 开始获取商品信息...")
     
     # 获取商品信息
     product_info = spider.get_product_info(product_id)
+    if product_info.get('success'):
+        product_name = product_info.get('product_name', product_name)
     print(f"📦 商品信息: {product_info}")
     
     print(f"📡 开始获取评论数据...")
@@ -359,7 +399,7 @@ def main():
     print(f"📊 测试结果: {test_result}")
     
     # 获取评论数据
-    comments = spider.get_multiple_pages(product_id, max_pages=max_pages, page_size=20)
+    comments = spider.get_multiple_pages(product_id, max_pages=actual_max_pages, page_size=20)
     
     if comments:
         print(f"\n🎉 成功获取 {len(comments)} 条评论")
@@ -375,9 +415,49 @@ def main():
             if comment['useful_count'] > 0:
                 print(f"   点赞: {comment['useful_count']}")
         
-        print(f"\n✅ 爬取完成！数据已通过API保存到数据库。")
+        # 保存到数据库
+        if use_database and db_reader:
+            print("💾 正在保存评论数据到数据库...")
+            save_success = db_reader.save_comments(product_id, comments)
+            if save_success:
+                print("✅ 评论数据已保存到数据库")
+            else:
+                print("❌ 保存评论数据失败")
+        
+        print(f"\n✅ 爬取完成！")
+        
+        # 输出JSON格式的数据供Node.js使用
+        output_data = {
+            "success": True,
+            "comments": comments,
+            "total": len(comments),
+            "product_info": {
+                "success": True,
+                "product_name": product_name,
+                "product_url": "",
+                "shop_name": ""
+            }
+        }
+        print(f"\n📊 JSON_DATA_START")
+        print(json.dumps(output_data, ensure_ascii=False, indent=2))
+        print(f"📊 JSON_DATA_END")
     else:
         print("❌ 未获取到任何评论数据")
+        # 输出空的JSON数据
+        output_data = {
+            "success": False,
+            "comments": [],
+            "total": 0,
+            "product_info": {
+                "success": True, 
+                "product_name": product_name, 
+                "product_url": "", 
+                "shop_name": ""
+            }
+        }
+        print(f"\n📊 JSON_DATA_START")
+        print(json.dumps(output_data, ensure_ascii=False, indent=2))
+        print(f"📊 JSON_DATA_END")
 
 
 if __name__ == "__main__":
