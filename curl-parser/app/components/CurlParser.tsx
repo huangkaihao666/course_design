@@ -7,7 +7,6 @@ import Header from './parser/Header';
 import MessageAlerts from './parser/MessageAlerts';
 import CurlInputArea from './parser/CurlInputArea';
 import ParseResultArea from './parser/ParseResultArea';
-import SaveConfigArea from './parser/SaveConfigArea';
 import ConfigManagementArea from './parser/ConfigManagementArea';
 import DataManagementArea from './parser/DataManagementArea';
 
@@ -19,8 +18,6 @@ export default function CurlParser() {
   } | null>(null);
   const [configs, setConfigs] = useState<ConfigPreset[]>([]);
   const [selectedConfig, setSelectedConfig] = useState<ConfigPreset | null>(null);
-  const [configName, setConfigName] = useState('');
-  const [configDescription, setConfigDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -66,6 +63,31 @@ export default function CurlParser() {
       if (result.success) {
         setParsedData(result.data);
         setSuccess('curl命令解析成功！');
+        
+        // 自动保存到数据库
+        try {
+          const saveResponse = await fetch('/api/save-parse', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              parsedData: result.data,
+              configName: `解析配置_${new Date().toLocaleString()}`,
+              configDescription: '自动保存的curl解析配置',
+            }),
+          });
+
+          const saveResult = await saveResponse.json();
+          if (saveResult.success) {
+            setSuccess('curl命令解析成功并已保存到数据库！');
+          } else {
+            setSuccess('curl命令解析成功，但保存到数据库失败');
+          }
+        } catch (saveError) {
+          setSuccess('curl命令解析成功，但保存到数据库失败');
+          console.error('保存到数据库失败:', saveError);
+        }
       } else {
         setError(result.error || '解析失败');
       }
@@ -77,62 +99,6 @@ export default function CurlParser() {
     }
   };
 
-  const saveConfig = async () => {
-    if (!parsedData || !configName.trim()) {
-      setError('请先解析curl命令并输入配置名称');
-      return;
-    }
-
-    try {
-      // 保存到数据库
-      const dbResponse = await fetch('/api/save-parse', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          parsedData,
-          configName,
-          configDescription,
-        }),
-      });
-
-      const dbResult = await dbResponse.json();
-
-      if (dbResult.success) {
-        // 同时保存到本地配置文件（保持原有功能）
-        const response = await fetch('/api/config', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: configName,
-            description: configDescription,
-            config: parsedData.config,
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          setSuccess('配置已保存到数据库和本地文件！');
-          setConfigName('');
-          setConfigDescription('');
-          loadConfigs();
-        } else {
-          setSuccess('配置已保存到数据库，但本地文件保存失败');
-          setConfigName('');
-          setConfigDescription('');
-        }
-      } else {
-        setError(dbResult.error || '数据库保存失败');
-      }
-    } catch (error) {
-      setError('保存请求失败');
-      console.error(error);
-    }
-  };
 
   const deleteConfig = async (id: string) => {
     if (!confirm('确定要删除这个配置吗？')) return;
@@ -254,15 +220,6 @@ export default function CurlParser() {
               onCopyToClipboard={copyToClipboard}
             />
 
-            {/* 保存配置 */}
-            <SaveConfigArea
-              parsedData={parsedData}
-              configName={configName}
-              setConfigName={setConfigName}
-              configDescription={configDescription}
-              setConfigDescription={setConfigDescription}
-              onSaveConfig={saveConfig}
-            />
           </div>
         )}
 

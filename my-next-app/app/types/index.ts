@@ -69,16 +69,54 @@ export interface AIBoxWorkflowConfig {
 }
 
 export interface CommentAnalysisRequest {
-  reviewBody: string;
-  avgPrice?: string;
-  cityName?: string;
-  dpPoiName?: string;
-  reviewCount?: string;
-  overallScore?: string;
-  platformName?: string;
+  content: string;
+  product_name: string;
+  rating: string;
+  user_nick: string;
+  date: string;
+  sku_info: string;
+  useful_count: string;
+  reply: string;
+  prompt: string;
 }
 
 export interface CommentAnalysisResult {
   tag: string;
   reason: string;
+}
+
+// AI工作流分析结果类型
+export interface SentimentAnalysisResult {
+  emotion_type: 'positive' | 'negative' | 'neutral';
+  confidence_score: number;
+  emotion_intensity: 'high' | 'medium' | 'low';
+  key_emotions: string[];
+  analysis_reasons: string;
+  key_points: string[];
+  improvement_suggestions: string;
+  overall_assessment: string;
+}
+
+export interface BoomReasonAnalysisResult {
+  tag: string;
+  reason: string;
+}
+
+export interface CommentWithAnalysis {
+  id?: number;
+  product_id: string;
+  product_name: string;
+  user_nick: string;
+  content: string;
+  rating: number;
+  date: string;
+  useful_count: number;
+  reply: string;
+  sku_info: string;
+  pics: string[];
+  created_at?: string;
+  updated_at?: string;
+  analysis?: SentimentAnalysisResult | BoomReasonAnalysisResult;
+  analysisError?: string;
+  analysisType?: 'sentiment_analysis' | 'boom_reason';
 }

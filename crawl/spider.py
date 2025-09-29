@@ -326,21 +326,6 @@ class TmallCommentSpider:
         
         return all_comments
     
-    def save_to_file(self, comments, filename):
-        """保存评论到文件"""
-        try:
-            # 保存到当前目录的output文件夹
-            os.makedirs('output', exist_ok=True)
-            filepath = os.path.join('output', filename)
-            
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(comments, f, ensure_ascii=False, indent=2)
-            
-            print(f"✅ 数据已保存到: {filepath}")
-            return filepath
-        except Exception as e:
-            print(f"❌ 保存失败: {e}")
-            return None
 
 
 def main():
@@ -379,17 +364,6 @@ def main():
     if comments:
         print(f"\n🎉 成功获取 {len(comments)} 条评论")
         
-        # 保存到文件，包含商品信息
-        data_to_save = {
-            'product_info': product_info,
-            'comments': comments,
-            'crawl_time': int(time.time()),
-            'product_id': product_id,
-            'max_pages': max_pages
-        }
-        filename = f"comments_{product_id}_{int(time.time())}.json"
-        spider.save_to_file(data_to_save, filename)
-        
         # 显示前3条评论
         print(f"\n📝 评论预览:")
         for i, comment in enumerate(comments[:3], 1):
@@ -401,7 +375,7 @@ def main():
             if comment['useful_count'] > 0:
                 print(f"   点赞: {comment['useful_count']}")
         
-        print(f"\n✅ 爬取完成！数据已保存。")
+        print(f"\n✅ 爬取完成！数据已通过API保存到数据库。")
     else:
         print("❌ 未获取到任何评论数据")
 

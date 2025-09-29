@@ -1,184 +1,153 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface Comment {
-  user_nick: string;
-  content: string;
-  rating: number;
-  date: string;
-  useful_count: number;
-  reply: string;
-  sku_info: string;
-  pics: string[];
-}
-
-interface SentimentResult {
-  sentiment: 'positive' | 'negative' | 'neutral';
-  score: number;
-  confidence: number;
-}
-
-interface CommentWithSentiment extends Comment {
-  sentiment: SentimentResult;
-}
+import { WorkflowService } from '../../../lib/workflow-service';
+import { DatabaseService } from '../../../lib/database';
+import { CommentAnalysisRequest } from '../../types';
 
 export async function POST(request: NextRequest) {
   try {
-    const { comments }: { comments: Comment[] } = await request.json();
-
-    if (!comments || !Array.isArray(comments)) {
-      return NextResponse.json(
-        { error: '评论数据格式错误' },
-        { status: 400 }
-      );
+    const { comments, analysisType = 'sentiment_analysis' } = await request.json();
+    
+    if (!Array.isArray(comments)) {
+      return NextResponse.json({ error: 'Comments must be an array' }, { status: 400 });
     }
+    
+    const workflowService = WorkflowService.getInstance();
+    const analyzedComments = [];
+    
+    for (const comment of comments) {
+      const startTime = Date.now();
+      let analysisResult;
+      
+      try {
+        const commentData: CommentAnalysisRequest = {
+          content: comment.content || '-',
+          product_name: comment.product_name || '-',
+          rating: comment.rating?.toString() || '-',
+          user_nick: comment.user_nick || '-',
+          date: comment.date || '-',
+          sku_info: comment.sku_info || '-',
+          useful_count: comment.useful_count?.toString() || '-',
+          reply: comment.reply || '-',
+          prompt: '-' // prompt字段由工作流内部处理
+        };
 
-    // 对每条评论进行情感分析
-    const commentsWithSentiment: CommentWithSentiment[] = comments.map(comment => ({
-      ...comment,
-      sentiment: analyzeSentiment(comment.content, comment.rating)
-    }));
+        if (analysisType === 'sentiment_analysis') {
+          analysisResult = await workflowService.analyzeCommentSentiment(commentData);
+        } else {
+          analysisResult = await workflowService.analyzeCommentBoomReason(commentData);
+        }
 
-    // 统计数据
-    const stats = generateStatistics(commentsWithSentiment);
+        const executionTime = Date.now() - startTime;
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        comments: commentsWithSentiment,
-        statistics: stats
+        // 保存工作流执行记录
+        try {
+          await DatabaseService.saveWorkflowExecutionLog({
+            workflowConfigId: analysisType === 'sentiment_analysis' ? 1 : 2, // 假设sentiment_analysis是1，boom_reason是2
+            productId: comment.product_id,
+            inputParams: commentData,
+            outputResult: analysisResult.success ? analysisResult.data : null,
+            executionTimeMs: executionTime,
+            success: analysisResult.success,
+            errorMessage: analysisResult.success ? undefined : analysisResult.error
+          });
+        } catch (logError) {
+          console.error('Failed to save workflow execution log:', logError);
+        }
+
+        // 更新评论的analysis字段，保存完整的AI分析结果
+        if (analysisResult.success && analysisResult.data && comment.id) {
+          try {
+            // 保存完整的分析结果
+            await DatabaseService.updateCommentAnalysis(comment.id, analysisResult.data);
+            console.log(`Successfully saved analysis for comment ${comment.id}`);
+          } catch (updateError) {
+            console.error('Failed to update comment analysis:', updateError);
+          }
+        }
+
+        analyzedComments.push({
+          ...comment,
+          analysis: analysisResult.success ? analysisResult.data : null,
+          analysisError: analysisResult.success ? null : analysisResult.error,
+          analysisType
+        });
+
+        // 添加延迟避免请求过于频繁
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        const executionTime = Date.now() - startTime;
+        
+        // 保存失败的执行记录
+        try {
+          await DatabaseService.saveWorkflowExecutionLog({
+            workflowConfigId: analysisType === 'sentiment_analysis' ? 1 : 2,
+            productId: comment.product_id,
+            inputParams: {
+              content: comment.content || '-',
+              product_name: comment.product_name || '-',
+              rating: comment.rating?.toString() || '-',
+              user_nick: comment.user_nick || '-',
+              date: comment.date || '-',
+              sku_info: comment.sku_info || '-',
+              useful_count: comment.useful_count?.toString() || '-',
+              reply: comment.reply || '-',
+              prompt: '-'
+            },
+            outputResult: null,
+            executionTimeMs: executionTime,
+            success: false,
+            errorMessage: error instanceof Error ? error.message : String(error)
+          });
+        } catch (logError) {
+          console.error('Failed to save workflow execution log:', logError);
+        }
+
+        analyzedComments.push({
+          ...comment,
+          analysis: null,
+          analysisError: error instanceof Error ? error.message : String(error),
+          analysisType
+        });
       }
+    }
+    
+    return NextResponse.json({ 
+      comments: analyzedComments,
+      totalAnalyzed: analyzedComments.length,
+      successCount: analyzedComments.filter(c => c.analysis).length,
+      errorCount: analyzedComments.filter(c => c.analysisError).length
     });
   } catch (error) {
-    console.error('情感分析错误:', error);
-    return NextResponse.json(
-      { error: '情感分析失败' },
-      { status: 500 }
-    );
+    console.error('Sentiment analysis error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// 简单的情感分析函数
-function analyzeSentiment(content: string, rating: number): SentimentResult {
-  // 正面词汇
-  const positiveWords = [
-    '好', '棒', '赞', '优秀', '满意', '推荐', '喜欢', '不错', '完美', '舒服',
-    '实惠', '便宜', '值得', '超值', '快', '及时', '准时', '新鲜', '香', '甜',
-    '软', '舒适', '漂亮', '美观', '精致', '高质量', '优质', '厚实', '结实'
-  ];
-
-  // 负面词汇
-  const negativeWords = [
-    '差', '坏', '糟糕', '失望', '后悔', '垃圾', '劣质', '难用', '不好', '破',
-    '薄', '小', '少', '贵', '慢', '晚', '臭', '苦', '硬', '粗糙', '丑', '假',
-    '骗', '欺骗', '退货', '投诉', '问题', '瑕疵', '缺陷', '漏', '裂', '坏了'
-  ];
-
-  let positiveScore = 0;
-  let negativeScore = 0;
-
-  // 计算正面词汇得分
-  positiveWords.forEach(word => {
-    const matches = (content.match(new RegExp(word, 'g')) || []).length;
-    positiveScore += matches;
-  });
-
-  // 计算负面词汇得分
-  negativeWords.forEach(word => {
-    const matches = (content.match(new RegExp(word, 'g')) || []).length;
-    negativeScore += matches;
-  });
-
-  // 考虑评分权重
-  const ratingWeight = rating / 10; // 评分权重 (0-1)
-  positiveScore += ratingWeight * 2; // 高评分增加正面得分
-
-  if (rating <= 3) {
-    negativeScore += 2; // 低评分增加负面得分
-  }
-
-  // 计算最终得分
-  const totalScore = positiveScore + negativeScore;
-  const normalizedScore = totalScore > 0 ? positiveScore / totalScore : 0.5;
-
-  // 确定情感倾向
-  let sentiment: 'positive' | 'negative' | 'neutral';
-  let confidence: number;
-
-  if (normalizedScore > 0.6) {
-    sentiment = 'positive';
-    confidence = Math.min(normalizedScore, 0.95);
-  } else if (normalizedScore < 0.4) {
-    sentiment = 'negative';
-    confidence = Math.min(1 - normalizedScore, 0.95);
-  } else {
-    sentiment = 'neutral';
-    confidence = 0.5;
-  }
-
-  return {
-    sentiment,
-    score: Math.round(normalizedScore * 100) / 100,
-    confidence: Math.round(confidence * 100) / 100
-  };
-}
-
-// 生成统计数据
-function generateStatistics(comments: CommentWithSentiment[]) {
-  const total = comments.length;
-  const positive = comments.filter(c => c.sentiment.sentiment === 'positive').length;
-  const negative = comments.filter(c => c.sentiment.sentiment === 'negative').length;
-  const neutral = comments.filter(c => c.sentiment.sentiment === 'neutral').length;
-
-  // 评分分布
-  const ratingDistribution = {
-    1: comments.filter(c => c.rating >= 1 && c.rating <= 2).length,
-    2: comments.filter(c => c.rating >= 3 && c.rating <= 4).length,
-    3: comments.filter(c => c.rating >= 5 && c.rating <= 6).length,
-    4: comments.filter(c => c.rating >= 7 && c.rating <= 8).length,
-    5: comments.filter(c => c.rating >= 9 && c.rating <= 10).length,
-  };
-
-  // 平均评分
-  const averageRating = comments.reduce((sum, c) => sum + c.rating, 0) / total;
-
-  // 情感分布
-  const sentimentDistribution = {
-    positive: Math.round((positive / total) * 100),
-    negative: Math.round((negative / total) * 100),
-    neutral: Math.round((neutral / total) * 100)
-  };
-
-  // 热门关键词
-  const keywords = extractKeywords(comments);
-
-  return {
-    total,
-    sentimentDistribution,
-    ratingDistribution,
-    averageRating: Math.round(averageRating * 10) / 10,
-    keywords
-  };
-}
-
-// 提取关键词
-function extractKeywords(comments: CommentWithSentiment[]) {
-  const wordCount: Record<string, number> = {};
-  const stopWords = ['的', '了', '是', '在', '有', '和', '也', '都', '就', '我', '你', '他', '她', '它', '这', '那', '很', '非常', '比较', '还是', '一个', '可以', '没有', '不是', '不会', '会', '要', '去', '来', '上', '下', '好', '不好'];
-
-  comments.forEach(comment => {
-    // 简单的中文分词（基于常见词汇）
-    const words = comment.content.match(/[\u4e00-\u9fa5]{2,4}/g) || [];
-    
-    words.forEach(word => {
-      if (!stopWords.includes(word) && word.length >= 2) {
-        wordCount[word] = (wordCount[word] || 0) + 1;
+export async function GET() {
+  return NextResponse.json({
+    message: 'Comment Analysis API',
+    usage: {
+      method: 'POST',
+      endpoint: '/api/sentiment',
+      body: {
+        comments: 'Array of comment objects',
+        analysisType: 'sentiment_analysis | boom_reason (optional, default: sentiment_analysis)'
+      },
+      example: {
+        comments: [
+          {
+            content: '评论内容',
+            product_name: '商品名称',
+            rating: 8,
+            user_nick: '用户昵称',
+            date: '2025-01-01',
+            sku_info: 'SKU信息',
+            useful_count: 5,
+            reply: '商家回复'
+          }
+        ],
+        analysisType: 'sentiment_analysis'
       }
-    });
+    }
   });
-
-  // 返回前10个高频词
-  return Object.entries(wordCount)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 10)
-    .map(([word, count]) => ({ word, count }));
 }

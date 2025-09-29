@@ -1,0 +1,23 @@
+{
+  "product_info": {
+    "success": true,
+    "product_name": "商品",
+    "product_url": "",
+    "shop_name": ""
+  },
+  "comments": [
+    {
+      "user_nick": "肖***",
+      "content": "该用户觉得商品非常好，给出5星好评",
+      "rating": 8,
+      "date": "2025年9月21日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "藏青色；M[100-115斤]",
+      "pics": []
+    }
+  ],
+  "crawl_time": 1758462631,
+  "product_id": "975632418612",
+  "max_pages": 3
+}

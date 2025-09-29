@@ -1,0 +1,231 @@
+{
+  "product_info": {
+    "success": true,
+    "product_name": "商品",
+    "product_url": "",
+    "shop_name": ""
+  },
+  "comments": [
+    {
+      "user_nick": "珍**得",
+      "content": "很不错哦，好搭配 ，面料也舒服，不勒肚子",
+      "rating": 8,
+      "date": "2025年8月29日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；L",
+      "pics": [
+        "//img.alicdn.com/imgextra/i1/4611686018427385277/O1CN01lKWAG71Oy5JMz5pjy_!!4611686018427385277-0-rate.jpg",
+        "//img.alicdn.com/imgextra/i3/4611686018427385277/O1CN01BOqtKO1Oy5JMhMiAd_!!4611686018427385277-0-rate.jpg",
+        "//img.alicdn.com/imgextra/i4/4611686018427385277/O1CN018O8Jvo1Oy5JM5LfPq_!!4611686018427385277-0-rate.jpg"
+      ]
+    },
+    {
+      "user_nick": "我**年",
+      "content": "无托腹款超级舒服，又遮肚子超级显瘦又可以美美的出街了",
+      "rating": 8,
+      "date": "2025年8月31日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；XL",
+      "pics": [
+        "//img.alicdn.com/imgextra/i1/4611686018427382310/O1CN01HkRX0r1MmyTMJWfj5_!!4611686018427382310-0-rate.jpg",
+        "//img.alicdn.com/imgextra/i4/4611686018427382310/O1CN01J4ACj01MmyTLWpwnB_!!4611686018427382310-0-rate.jpg",
+        "//img.alicdn.com/imgextra/i3/4611686018427382310/O1CN01m18ln81MmyTKpqYmZ_!!4611686018427382310-0-rate.jpg"
+      ]
+    },
+    {
+      "user_nick": "铁**0",
+      "content": "买裤子这么多年，只有这一次是真正的，质量又好版型又好！入手超值！ ",
+      "rating": 9,
+      "date": "2025年8月25日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "黑色；M",
+      "pics": [
+        "//img.alicdn.com/imgextra/i3/4611686018427386944/O1CN013vMy4R1Mctl2M4N9m_!!4611686018427386944-0-tbbala.jpg",
+        "//img.alicdn.com/imgextra/i4/4611686018427386944/O1CN01i1cbGb1Mctl0PKuGw_!!4611686018427386944-0-tbbala.jpg",
+        "//img.alicdn.com/imgextra/i2/4611686018427386944/O1CN01QVi56X1Mctl0PLNOe_!!4611686018427386944-0-tbbala.jpg"
+      ]
+    },
+    {
+      "user_nick": "散**！",
+      "content": "托腹弹性也很大，穿上身真的没有紧绷感很舒服，裤子也够长，不掉档 ",
+      "rating": 9,
+      "date": "2025年8月24日",
+      "useful_count": 1,
+      "reply": "",
+      "sku_info": "白色；2XL",
+      "pics": [
+        "//img.alicdn.com/imgextra/i1/4611686018427383882/O1CN01KGFEw41inokMlKnUG_!!4611686018427383882-0-tbbala.jpg",
+        "//img.alicdn.com/imgextra/i3/4611686018427383882/O1CN01XHtGSU1inokMgvAJl_!!4611686018427383882-0-tbbala.jpg",
+        "//img.alicdn.com/imgextra/i1/4611686018427383882/O1CN01MVbE8J1inokMgu9wk_!!4611686018427383882-0-tbbala.jpg"
+      ]
+    },
+    {
+      "user_nick": "d**3",
+      "content": "该用户觉得商品非常好，给出好评",
+      "rating": 9,
+      "date": "2025年8月27日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；M",
+      "pics": []
+    },
+    {
+      "user_nick": "匿名买家",
+      "content": "该用户觉得商品非常好，给出好评",
+      "rating": 9,
+      "date": "2025年8月24日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "黑色；L",
+      "pics": []
+    },
+    {
+      "user_nick": "草**华",
+      "content": "面料柔软很舒服，款式也很好看，上身效果也挺好和原图一样的",
+      "rating": 9,
+      "date": "2025年9月8日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；2XL",
+      "pics": []
+    },
+    {
+      "user_nick": "家**6",
+      "content": "尺码标准，穿着好看，满意的一次购物",
+      "rating": 10,
+      "date": "2025年9月11日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "黑色；L",
+      "pics": []
+    },
+    {
+      "user_nick": "匿名买家",
+      "content": "版型很好，穿着很显腿长，白色的比较百搭",
+      "rating": 9,
+      "date": "2025年8月30日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；XL",
+      "pics": []
+    },
+    {
+      "user_nick": "匿名买家",
+      "content": "有点点米白色，170 140多斤穿着长短大小都行。试穿感觉可以。",
+      "rating": 7,
+      "date": "2025年9月14日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色（优质推荐版）；2XL",
+      "pics": []
+    },
+    {
+      "user_nick": "自**y",
+      "content": "布料非常好，",
+      "rating": 9,
+      "date": "2025年9月12日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；L",
+      "pics": []
+    },
+    {
+      "user_nick": "匿名买家",
+      "content": "该用户觉得商品非常好，给出好评",
+      "rating": 9,
+      "date": "2025年9月5日",
+      "useful_count": 1,
+      "reply": "",
+      "sku_info": "白色；L",
+      "pics": []
+    },
+    {
+      "user_nick": "一**卿",
+      "content": "穿起来很舒服",
+      "rating": 9,
+      "date": "2025年8月29日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；2XL",
+      "pics": []
+    },
+    {
+      "user_nick": "朝**幕",
+      "content": "质量不错👍对孕妇很友好🧑‍🤝‍🧑",
+      "rating": 8,
+      "date": "2025年9月17日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；XL",
+      "pics": [
+        "//img.alicdn.com/imgextra/i1/2663270062/O1CN01aLrWzP1CKReArgdzQ~livephoto~_!!2663270062-0-rate_livephoto.jpg"
+      ]
+    },
+    {
+      "user_nick": "梦**タ",
+      "content": "尺码合适，好搭配衣服，满意。",
+      "rating": 9,
+      "date": "2025年9月17日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；M",
+      "pics": []
+    },
+    {
+      "user_nick": "匿名买家",
+      "content": "抱着试试看的心态买的，因为价格便宜，没想到收到货质量这么好，太意外啦！",
+      "rating": 8,
+      "date": "2025年8月28日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色（优质推荐版）；2XL",
+      "pics": []
+    },
+    {
+      "user_nick": "用**8",
+      "content": "该用户觉得商品非常好，给出好评",
+      "rating": 8,
+      "date": "2025年8月26日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；XL",
+      "pics": []
+    },
+    {
+      "user_nick": "匿名买家",
+      "content": "抱着试试看的心态买的，因为价格便宜，没想到收到货质量这么好，太意外啦！",
+      "rating": 10,
+      "date": "2025年8月27日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "黑色（优质推荐版）；M",
+      "pics": []
+    },
+    {
+      "user_nick": "顾***",
+      "content": "商品质量非常好，外观设计新颖，物流速度快，商家服务态度好，性价比高。",
+      "rating": 8,
+      "date": "2025年9月13日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；M",
+      "pics": []
+    },
+    {
+      "user_nick": "许***",
+      "content": "卖家服务态度很好，性价比很高，值得购买，非常满意！",
+      "rating": 12,
+      "date": "2025年9月14日",
+      "useful_count": 0,
+      "reply": "",
+      "sku_info": "白色；XL",
+      "pics": []
+    }
+  ],
+  "crawl_time": 1758468494,
+  "product_id": "965539693780",
+  "max_pages": 1
+}

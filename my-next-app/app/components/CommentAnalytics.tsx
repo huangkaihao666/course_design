@@ -2,453 +2,572 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Progress,
+  Table,
+  Tag,
+  Space,
+  Button,
+  Select,
+  Spin,
+  Alert,
+  Typography,
+  Divider,
   Tooltip,
-  Legend,
-  ArcElement,
-} from 'chart.js';
-import { Bar, Doughnut } from 'react-chartjs-2';
-import { Search, Download, RefreshCw, TrendingUp, MessageCircle, Star } from 'lucide-react';
-import { crawlComments, getComments, analyzeSentiment, getSentimentColor, getSentimentText, getStarRating } from '../utils/api';
-import { CommentWithSentiment, Statistics } from '../types';
-import ProductSelector from './ProductSelector';
+  Badge,
+  Empty,
+  App
+} from 'antd';
+import {
+  BarChartOutlined,
+  PieChartOutlined,
+  MessageOutlined,
+  LikeOutlined,
+  DislikeOutlined,
+  MehOutlined,
+  ThunderboltOutlined,
+  ReloadOutlined,
+  EyeOutlined,
+  BulbOutlined
+} from '@ant-design/icons';
+import { CommentWithAnalysis, SentimentAnalysisResult, BoomReasonAnalysisResult } from '../types';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+const { Title, Text, Paragraph } = Typography;
+const { Option } = Select;
 
-export default function CommentAnalytics() {
-  const [productId, setProductId] = useState('889955499609'); // 改为有数据的ID
-  const [cookies, setCookies] = useState('');
-  const [maxPages, setMaxPages] = useState(3); // 添加页数状态
-  const [comments, setComments] = useState<CommentWithSentiment[]>([]);
-  const [statistics, setStatistics] = useState<Statistics | null>(null);
-  const [loading, setCrawlLoading] = useState(false);
+interface CommentAnalyticsProps {
+  productId?: string;
+  onAnalyze?: (productId: string) => void;
+}
+
+const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProductId, onAnalyze }) => {
+  const { message } = App.useApp();
+  const [comments, setComments] = useState<CommentWithAnalysis[]>([]);
+  const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showProductSelector, setShowProductSelector] = useState(false);
+  const [analysisType, setAnalysisType] = useState<'sentiment_analysis' | 'boom_reason'>('sentiment_analysis');
+  const [stats, setStats] = useState<any>(null);
+  const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0 });
+  const [selectedProductId, setSelectedProductId] = useState<string>(propProductId || '');
+  const [products, setProducts] = useState<any[]>([]);
 
-  // 加载已有评论数据
-  const loadExistingComments = async () => {
+  // 获取商品列表
+  const fetchProducts = async () => {
     try {
-      setAnalyzing(true);
-      setError(null);
-      
-      console.log('开始加载商品ID:', productId, '页数:', maxPages);
-      const result = await getComments(productId, maxPages);
-      console.log('API返回结果:', result);
+      const response = await fetch('/api/products?action=list');
+      const result = await response.json();
       
       if (result.success) {
-        if (result.data && result.data.length > 0) {
-          console.log('找到数据，开始情感分析...');
-          const analysisResult = await analyzeSentiment(result.data);
-          console.log('情感分析完成:', analysisResult);
-          setComments(analysisResult.comments);
-          setStatistics(analysisResult.statistics);
-          setError(null);
-          console.log('数据设置完成，评论数量:', analysisResult.comments.length);
-        } else {
-          console.log('没有找到评论数据');
-          setComments([]);
-          setStatistics(null);
-          setError(`商品 ${productId} 暂无评论数据`);
+        setProducts(result.data);
+        if (result.data.length > 0 && !selectedProductId) {
+          setSelectedProductId(result.data[0].product_id);
         }
       } else {
-        console.log('API调用失败:', result.error);
-        setComments([]);
-        setStatistics(null);
-        setError(result.error || '加载评论失败');
+        message.error('获取商品列表失败：' + result.error);
       }
-    } catch (err) {
-      console.error('加载评论异常:', err);
-      setError('加载评论失败');
-    } finally {
-      setAnalyzing(false);
+    } catch (error) {
+      message.error('获取商品列表失败');
+      console.error('Error fetching products:', error);
     }
   };
 
-  // 爬取新评论
-  const handleCrawl = async () => {
+  // 获取评论数据
+  const fetchComments = async (productId: string) => {
+    if (!productId) return;
+    
+    setLoading(true);
     try {
-      setCrawlLoading(true);
-      setError(null);
+      const response = await fetch(`/api/comments?productId=${productId}`);
+      const result = await response.json();
       
-      const result = await crawlComments(productId, maxPages, cookies);
       if (result.success) {
-        const analysisResult = await analyzeSentiment(result.data);
-        setComments(analysisResult.comments);
-        setStatistics(analysisResult.statistics);
+        setComments(result.data as CommentWithAnalysis[]);
       } else {
-        setError(result.error || '爬取失败');
+        message.error('获取评论数据失败：' + result.error);
       }
-    } catch (err) {
-      setError('爬取评论失败');
-      console.error(err);
+    } catch (error) {
+      message.error('获取评论数据失败');
+      console.error('Error fetching comments:', error);
     } finally {
-      setCrawlLoading(false);
+      setLoading(false);
     }
   };
 
-  // 处理商品选择
-  const handleProductSelect = (selectedProductId: string) => {
-    setProductId(selectedProductId);
-    setShowProductSelector(false);
-  };
+  // 分析评论
+  const analyzeComments = async () => {
+    if (comments.length === 0) {
+      message.warning('没有评论数据可分析');
+      return;
+    }
 
-  // 处理从数据库爬取
-  const handleDatabaseCrawl = async (selectedProductId: string, selectedMaxPages: number) => {
-    setProductId(selectedProductId);
-    setMaxPages(selectedMaxPages);
-    setShowProductSelector(false);
+    setAnalyzing(true);
+    setAnalysisProgress({ current: 0, total: comments.length });
     
     try {
-      setCrawlLoading(true);
-      setError(null);
+      // 逐条分析评论
+      const updatedComments = [...comments];
       
-      // 使用数据库配置进行爬取
-      const result = await getComments(selectedProductId, selectedMaxPages);
-      if (result.success && result.data && result.data.length > 0) {
-        const analysisResult = await analyzeSentiment(result.data);
-        setComments(analysisResult.comments);
-        setStatistics(analysisResult.statistics);
+      for (let i = 0; i < comments.length; i++) {
+        try {
+          const response = await fetch('/api/sentiment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              comments: [comments[i]],
+              analysisType: analysisType
+            }),
+          });
+
+          const result = await response.json();
+          
+          if (response.ok && result.comments && result.comments.length > 0) {
+            updatedComments[i] = result.comments[0];
       } else {
-        setError(result.error || '爬取失败');
+            updatedComments[i] = {
+              ...updatedComments[i],
+              analysisError: result.error || '分析失败'
+            };
+          }
+        } catch (error) {
+          updatedComments[i] = {
+            ...updatedComments[i],
+            analysisError: '分析过程中出现错误'
+          };
+        }
+        
+        // 更新进度
+        setAnalysisProgress({ current: i + 1, total: comments.length });
+        
+        // 更新评论列表（实时显示进度）
+        setComments([...updatedComments]);
+        
+        // 添加小延迟，让用户看到进度
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
-    } catch (err) {
-      setError('爬取评论失败');
-      console.error(err);
+      
+      message.success(`分析完成！成功分析 ${updatedComments.filter(c => c.analysis).length} 条评论`);
+      calculateStats(updatedComments);
+      
+    } catch (error) {
+      message.error('分析过程中出现错误');
+      console.error('Error analyzing comments:', error);
     } finally {
-      setCrawlLoading(false);
+      setAnalyzing(false);
+      setAnalysisProgress({ current: 0, total: 0 });
     }
   };
 
-  // 防抖处理，避免频繁调用API
+  // 计算统计数据
+  const calculateStats = (commentsData: CommentWithAnalysis[]) => {
+    const total = commentsData.length;
+    const analyzed = commentsData.filter(c => c.analysis).length;
+    const errors = commentsData.filter(c => c.analysisError).length;
+
+    let sentimentStats = null;
+    if (analysisType === 'sentiment_analysis') {
+      const positive = commentsData.filter(c => 
+        c.analysis && (c.analysis as SentimentAnalysisResult).emotion_type === 'positive'
+      ).length;
+      const negative = commentsData.filter(c => 
+        c.analysis && (c.analysis as SentimentAnalysisResult).emotion_type === 'negative'
+      ).length;
+      const neutral = commentsData.filter(c => 
+        c.analysis && (c.analysis as SentimentAnalysisResult).emotion_type === 'neutral'
+      ).length;
+
+      sentimentStats = {
+        positive,
+        negative,
+        neutral,
+        positiveRate: total > 0 ? Math.round((positive / total) * 100) : 0,
+        negativeRate: total > 0 ? Math.round((negative / total) * 100) : 0,
+        neutralRate: total > 0 ? Math.round((neutral / total) * 100) : 0,
+      };
+    }
+
+    setStats({
+      total,
+      analyzed,
+      errors,
+      sentimentStats
+    });
+  };
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (productId.trim()) {
-        console.log('开始加载商品ID:', productId, '页数:', maxPages);
-        loadExistingComments();
-      }
-    }, 500); // 减少防抖时间到0.5秒，让API有更多时间处理
+    fetchProducts();
+  }, []);
 
-    return () => clearTimeout(timer);
-  }, [productId, maxPages]);
+  useEffect(() => {
+    if (selectedProductId) {
+      fetchComments(selectedProductId);
+    }
+  }, [selectedProductId]);
 
-  // 情感分布图表数据
-  const sentimentChartData = {
-    labels: ['正面', '负面', '中性'],
-    datasets: [
-      {
-        data: statistics ? [
-          statistics.sentimentDistribution.positive,
-          statistics.sentimentDistribution.negative,
-          statistics.sentimentDistribution.neutral
-        ] : [0, 0, 0],
-        backgroundColor: ['#10B981', '#EF4444', '#6B7280'],
-        borderWidth: 2,
-        borderColor: '#ffffff',
-      },
-    ],
+  useEffect(() => {
+    if (comments.length > 0) {
+      calculateStats(comments);
+    }
+  }, [comments, analysisType]);
+
+  // 获取情感标签颜色
+  const getSentimentColor = (emotionType: string) => {
+    switch (emotionType) {
+      case 'positive': return 'green';
+      case 'negative': return 'red';
+      case 'neutral': return 'blue';
+      default: return 'default';
+    }
   };
 
-  // 评分分布图表数据
-  const ratingChartData = {
-    labels: ['1-2分', '3-4分', '5-6分', '7-8分', '9-10分'],
-    datasets: [
-      {
-        label: '评论数量',
-        data: statistics ? [
-          statistics.ratingDistribution[1],
-          statistics.ratingDistribution[2],
-          statistics.ratingDistribution[3],
-          statistics.ratingDistribution[4],
-          statistics.ratingDistribution[5],
-        ] : [0, 0, 0, 0, 0],
-        backgroundColor: '#3B82F6',
-        borderColor: '#1D4ED8',
-        borderWidth: 1,
-      },
-    ],
+  // 获取情感图标
+  const getSentimentIcon = (emotionType: string) => {
+    switch (emotionType) {
+      case 'positive': return <LikeOutlined />;
+      case 'negative': return <DislikeOutlined />;
+      case 'neutral': return <MehOutlined />;
+      default: return <MessageOutlined />;
+    }
   };
+
+  // 表格列定义
+  const columns = [
+    {
+      title: '用户',
+      dataIndex: 'user_nick',
+      key: 'user_nick',
+      width: 100,
+      render: (text: string) => (
+        <Text ellipsis={{ tooltip: text }} style={{ maxWidth: 80 }}>
+          {text}
+        </Text>
+      ),
+    },
+    {
+      title: '评论内容',
+      dataIndex: 'content',
+      key: 'content',
+      width: 300,
+      render: (text: string) => (
+        <Paragraph 
+          ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
+          style={{ margin: 0 }}
+        >
+          {text}
+        </Paragraph>
+      ),
+    },
+    {
+      title: '评分',
+      dataIndex: 'rating',
+      key: 'rating',
+      width: 80,
+      render: (rating: number) => (
+        <Badge 
+          count={rating} 
+          style={{ backgroundColor: rating >= 7 ? '#52c41a' : rating >= 4 ? '#faad14' : '#ff4d4f' }}
+        />
+      ),
+    },
+    {
+      title: '分析结果',
+      key: 'analysis',
+      width: 200,
+      render: (record: CommentWithAnalysis) => {
+        if (record.analysisError) {
+          return <Tag color="red">分析失败</Tag>;
+        }
+        
+        if (!record.analysis) {
+          return <Tag color="default">未分析</Tag>;
+        }
+
+        if (analysisType === 'sentiment_analysis') {
+          const analysis = record.analysis as SentimentAnalysisResult;
+          return (
+            <Space direction="vertical" size="small">
+              <Tag 
+                color={getSentimentColor(analysis.emotion_type)}
+                icon={getSentimentIcon(analysis.emotion_type)}
+              >
+                {analysis.emotion_type === 'positive' ? '正面' : 
+                 analysis.emotion_type === 'negative' ? '负面' : '中性'}
+              </Tag>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                置信度: {Math.round(analysis.confidence_score * 100)}%
+              </Text>
+            </Space>
+          );
+        } else {
+          const analysis = record.analysis as BoomReasonAnalysisResult;
+          return (
+            <Space direction="vertical" size="small">
+              <Tag color="blue">{analysis.tag}</Tag>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                {analysis.reason}
+              </Text>
+            </Space>
+          );
+        }
+      },
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 100,
+      render: (record: CommentWithAnalysis) => (
+        <Space>
+          <Tooltip title="查看详情">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              size="small"
+              onClick={() => {
+                // 这里可以添加查看详情的逻辑
+                console.log('View details:', record);
+              }}
+            />
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+        <div style={{ marginTop: '16px' }}>加载评论数据中...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* 页头 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">电商评论分析系统</h1>
-          <p className="text-gray-600">分析商品评论的情感倾向和用户反馈趋势</p>
-        </div>
-
-        {/* 控制面板 */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">商品分析控制</h2>
-            <button
-              onClick={() => setShowProductSelector(!showProductSelector)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2"
-            >
-              <Search className="w-4 h-4" />
-              从数据库选择商品
-            </button>
-          </div>
-
-          {showProductSelector && (
-            <div className="mb-6">
-              <ProductSelector
-                onProductSelect={handleProductSelect}
-                onCrawlStart={handleDatabaseCrawl}
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                商品ID
-              </label>
-              <input
-                type="text"
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="请输入商品ID（如：549111425823），系统会自动加载数据"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                爬取页数
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={maxPages}
-                onChange={(e) => setMaxPages(parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="1-10页"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cookies（可选，用于获取其他商品数据）
-              </label>
-              <input
-                type="text"
-                value={cookies}
-                onChange={(e) => setCookies(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="从浏览器开发者工具中复制cookies"
-              />
-            </div>
-          </div>
-          <div className="flex gap-4 items-end">
-            <div className="flex gap-2">
-              <button
-                onClick={loadExistingComments}
-                disabled={analyzing}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
+    <div style={{ padding: '24px' }}>
+      <Card>
+        <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
+          <Col>
+            <Title level={3} style={{ margin: 0 }}>
+              <MessageOutlined /> 评论分析
+            </Title>
+            <Text type="secondary">
+              共 {comments.length} 条评论
+            </Text>
+          </Col>
+          <Col>
+            <Space>
+              <Select
+                value={selectedProductId}
+                onChange={setSelectedProductId}
+                placeholder="选择商品"
+                style={{ width: 200 }}
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+                }
               >
-                <Search className="w-4 h-4" />
-                {analyzing ? '加载中...' : '加载现有'}
-              </button>
-              <button
-                onClick={handleCrawl}
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                {products.map(product => (
+                  <Option key={product.product_id} value={product.product_id}>
+                    {product.product_name} ({product.comment_count} 条评论)
+                  </Option>
+                ))}
+              </Select>
+              <Select
+                value={analysisType}
+                onChange={setAnalysisType}
+                style={{ width: 150 }}
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? '爬取中...' : '重新爬取'}
-              </button>
-            </div>
-          </div>
-          
-          {analyzing && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md">
-              🔍 正在自动加载商品 {productId} 的数据（{maxPages}页）...
-              <div className="mt-2 text-sm text-blue-600">
-                如果没有现有数据，系统将自动爬取 {maxPages} 页新数据，请稍候...
+                <Option value="sentiment_analysis">情感分析</Option>
+                <Option value="boom_reason">爆火原因分析</Option>
+              </Select>
+              <Button
+                type="primary"
+                icon={<ThunderboltOutlined />}
+                loading={analyzing}
+                onClick={analyzeComments}
+                disabled={comments.length === 0}
+              >
+                {analyzing ? '分析中...' : '开始分析'}
+              </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => fetchComments(selectedProductId)}
+                disabled={!selectedProductId}
+              >
+                刷新
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+
+        {!selectedProductId ? (
+          <Empty 
+            description="请先选择一个商品"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+        ) : comments.length === 0 ? (
+          <Empty 
+            description="该商品暂无评论数据"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          >
+            <Button type="primary" onClick={() => fetchComments(selectedProductId)}>
+              重新加载
+            </Button>
+          </Empty>
+        ) : analyzing ? (
+          // 显示分析进度
+          <Card style={{ textAlign: 'center', marginBottom: 24 }}>
+            <Space direction="vertical" size="large">
+              <div>
+                <ThunderboltOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} spin />
+                <Title level={3}>分析进行中...</Title>
+                <Text type="secondary">
+                  正在分析评论 {analysisProgress.current}/{analysisProgress.total}
+                </Text>
               </div>
-            </div>
-          )}
-          
-          {!analyzing && comments.length > 0 && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md">
-              ✅ 成功加载 {comments.length} 条评论数据
-            </div>
-          )}
-          
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
-              {error}
-            </div>
-          )}
-        </div>
-
-        {statistics && (
+              <Progress 
+                percent={Math.round((analysisProgress.current / analysisProgress.total) * 100)} 
+                status="active" 
+                strokeColor="#1890ff"
+                style={{ maxWidth: 400, margin: '0 auto' }}
+              />
+              <Text type="secondary">
+                {analysisType === 'sentiment_analysis' ? '情感分析' : '爆火原因分析'} 进行中...
+              </Text>
+            </Space>
+          </Card>
+        ) : (
           <>
             {/* 统计卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center">
-                  <MessageCircle className="w-8 h-8 text-blue-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">总评论数</p>
-                    <p className="text-2xl font-bold text-gray-900">{statistics.total}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center">
-                  <Star className="w-8 h-8 text-yellow-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">平均评分</p>
-                    <p className="text-2xl font-bold text-gray-900">{statistics.averageRating}/10</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center">
-                  <TrendingUp className="w-8 h-8 text-green-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">正面评论</p>
-                    <p className="text-2xl font-bold text-gray-900">{statistics.sentimentDistribution.positive}%</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center">
-                  <Download className="w-8 h-8 text-red-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">负面评论</p>
-                    <p className="text-2xl font-bold text-gray-900">{statistics.sentimentDistribution.negative}%</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 图表区域 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">情感分布</h3>
-                <div className="h-64">
-                  <Doughnut 
-                    data={sentimentChartData} 
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          position: 'bottom' as const,
-                        },
-                      },
-                    }}
+            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+              <Col xs={24} sm={8}>
+                <Card>
+                  <Statistic
+                    title="总评论数"
+                    value={stats?.total || 0}
+                    prefix={<MessageOutlined />}
                   />
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">评分分布</h3>
-                <div className="h-64">
-                  <Bar 
-                    data={ratingChartData} 
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          display: false,
-                        },
-                      },
-                      scales: {
-                        y: {
-                          beginAtZero: true,
-                        },
-                      },
-                    }}
+                </Card>
+              </Col>
+              <Col xs={24} sm={8}>
+                <Card>
+                  <Statistic
+                    title="已分析"
+                    value={stats?.analyzed || 0}
+                    prefix={<BarChartOutlined />}
+                    valueStyle={{ color: '#3f8600' }}
                   />
-                </div>
-              </div>
-            </div>
+                </Card>
+              </Col>
+              <Col xs={24} sm={8}>
+                <Card>
+                  <Statistic
+                    title="分析失败"
+                    value={stats?.errors || 0}
+                    prefix={<DislikeOutlined />}
+                    valueStyle={{ color: '#cf1322' }}
+                  />
+                </Card>
+              </Col>
+            </Row>
 
-            {/* 关键词云 */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">热门关键词</h3>
-              <div className="flex flex-wrap gap-2">
-                {statistics.keywords.map((keyword, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                    style={{ fontSize: `${Math.max(12, Math.min(20, keyword.count * 2))}px` }}
-                  >
-                    {keyword.word} ({keyword.count})
-                  </span>
-                ))}
+            {/* 情感分布 */}
+            {analysisType === 'sentiment_analysis' && stats?.sentimentStats && (
+              <Card title="情感分布" style={{ marginBottom: '24px' }}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={8}>
+                    <div style={{ textAlign: 'center' }}>
+                      <Progress
+                        type="circle"
+                        percent={stats.sentimentStats.positiveRate}
+                        strokeColor="#52c41a"
+                        format={() => (
+                          <div>
+                            <LikeOutlined style={{ color: '#52c41a', fontSize: '24px' }} />
+                            <div style={{ marginTop: '8px' }}>正面</div>
+                </div>
+                        )}
+                      />
+                      <div style={{ marginTop: '8px' }}>
+                        {stats.sentimentStats.positive} 条评论
               </div>
             </div>
+                  </Col>
+                  <Col xs={24} sm={8}>
+                    <div style={{ textAlign: 'center' }}>
+                      <Progress
+                        type="circle"
+                        percent={stats.sentimentStats.negativeRate}
+                        strokeColor="#ff4d4f"
+                        format={() => (
+                          <div>
+                            <DislikeOutlined style={{ color: '#ff4d4f', fontSize: '24px' }} />
+                            <div style={{ marginTop: '8px' }}>负面</div>
+            </div>
+                        )}
+                      />
+                      <div style={{ marginTop: '8px' }}>
+                        {stats.sentimentStats.negative} 条评论
+                    </div>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={8}>
+                    <div style={{ textAlign: 'center' }}>
+                      <Progress
+                        type="circle"
+                        percent={stats.sentimentStats.neutralRate}
+                        strokeColor="#1890ff"
+                        format={() => (
+                          <div>
+                            <MehOutlined style={{ color: '#1890ff', fontSize: '24px' }} />
+                            <div style={{ marginTop: '8px' }}>中性</div>
+                  </div>
+                        )}
+                      />
+                      <div style={{ marginTop: '8px' }}>
+                        {stats.sentimentStats.neutral} 条评论
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            )}
+
+            {/* 错误提示 */}
+            {stats?.errors > 0 && (
+              <Alert
+                message={`有 ${stats.errors} 条评论分析失败`}
+                type="warning"
+                showIcon
+                style={{ marginBottom: '16px' }}
+              />
+            )}
+
+            {/* 评论表格 */}
+            <Card title="评论详情">
+              <Table
+                columns={columns}
+                dataSource={comments}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total, range) => 
+                    `第 ${range[0]}-${range[1]} 条，共 ${total} 条评论`,
+                }}
+                scroll={{ x: 800 }}
+              />
+            </Card>
           </>
         )}
-
-        {/* 评论列表 */}
-        {comments.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">评论详情</h3>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {comments.slice(0, 10).map((comment, index) => (
-                <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">{comment.user_nick}</span>
-                      <span 
-                        className="px-2 py-1 rounded-full text-xs text-white"
-                        style={{ backgroundColor: getSentimentColor(comment.sentiment.sentiment) }}
-                      >
-                        {getSentimentText(comment.sentiment.sentiment)}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-yellow-500">{getStarRating(comment.rating)}</div>
-                      <div className="text-sm text-gray-500">{comment.date}</div>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-2">{comment.content}</p>
-                  {comment.sku_info && (
-                    <p className="text-sm text-gray-500">规格: {comment.sku_info}</p>
-                  )}
-                  {comment.pics.length > 0 && (
-                    <div className="flex gap-2 mt-2">
-                      {comment.pics.slice(0, 3).map((pic, picIndex) => (
-                        <img
-                          key={picIndex}
-                          src={`https:${pic}`}
-                          alt="评论图片"
-                          className="w-16 h-16 object-cover rounded"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      </Card>
     </div>
   );
-}
+};
+
+export default CommentAnalytics;
