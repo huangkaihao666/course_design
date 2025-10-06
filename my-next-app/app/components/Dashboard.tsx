@@ -413,66 +413,212 @@ const Dashboard: React.FC = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
-        <Col>
-          <Title level={3} style={{ margin: 0 }}>
-            <BarChartOutlined /> 数据概览
-          </Title>
-          <Text type="secondary">
-            系统整体数据统计和商品信息概览
-          </Text>
-        </Col>
-        <Col>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={handleRefresh}
-            loading={loading}
-          >
-            刷新数据
-          </Button>
-        </Col>
-      </Row>
+      <Card 
+        style={{ 
+          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          marginBottom: '32px',
+          border: '1px solid #bae7ff',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+        bodyStyle={{ padding: '32px' }}
+      >
+        {/* 背景装饰 */}
+        <div style={{
+          position: 'absolute',
+          top: '-50px',
+          right: '-50px',
+          width: '200px',
+          height: '200px',
+          background: 'rgba(24, 144, 255, 0.08)',
+          borderRadius: '50%',
+          zIndex: 0
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-30px',
+          left: '-30px',
+          width: '150px',
+          height: '150px',
+          background: 'rgba(24, 144, 255, 0.05)',
+          borderRadius: '50%',
+          zIndex: 0
+        }} />
+        
+        <Row justify="space-between" align="middle" style={{ position: 'relative', zIndex: 1 }}>
+          <Col>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{
+                background: 'rgba(24, 144, 255, 0.1)',
+                borderRadius: '12px',
+                padding: '12px',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <BarChartOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              </div>
+              <div>
+                <Title level={1} style={{ 
+                  margin: 0, 
+                  color: '#1890ff', 
+                  fontSize: '32px',
+                  fontWeight: 'bold'
+                }}>
+                  数据概览
+                </Title>
+                <Text style={{ 
+                  color: '#69c0ff', 
+                  fontSize: '16px',
+                  fontWeight: '500'
+                }}>
+                  📊 系统整体数据统计和商品信息概览
+                </Text>
+              </div>
+            </div>
+          </Col>
+          <Col>
+            <Button
+              type="primary"
+              size="large"
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              loading={loading}
+              style={{
+                background: '#1890ff',
+                border: '1px solid #40a9ff',
+                color: 'white',
+                fontWeight: '600',
+                height: '48px',
+                paddingLeft: '24px',
+                paddingRight: '24px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(24, 144, 255, 0.2)'
+              }}
+            >
+              刷新数据
+            </Button>
+          </Col>
+        </Row>
+      </Card>
 
       {/* 核心统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+      <Row gutter={[24, 24]} style={{ marginBottom: '32px' }}>
         <Col xs={24} sm={6}>
-          <Card>
-            <Statistic
-              title="总评论数"
-              value={stats?.totalComments || 0}
-              prefix={<MessageOutlined style={{ color: '#1890ff' }} />}
-              valueStyle={{ color: '#1890ff' }}
-            />
+          <Card 
+            hoverable
+            style={{ 
+              background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+              border: '1px solid #bae7ff'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #1890ff, #40a9ff)',
+                borderRadius: '12px',
+                padding: '12px',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <MessageOutlined style={{ fontSize: '20px', color: 'white' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>总评论数</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1890ff' }}>
+                  {stats?.totalComments?.toLocaleString() || 0}
+                </div>
+              </div>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={6}>
-          <Card>
-            <Statistic
-              title="商品数量"
-              value={stats?.uniqueProducts || 0}
-              prefix={<DatabaseOutlined style={{ color: '#52c41a' }} />}
-              valueStyle={{ color: '#52c41a' }}
-            />
+          <Card 
+            hoverable
+            style={{ 
+              background: 'linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)',
+              border: '1px solid #b7eb8f'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #52c41a, #73d13d)',
+                borderRadius: '12px',
+                padding: '12px',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <DatabaseOutlined style={{ fontSize: '20px', color: 'white' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>商品数量</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#52c41a' }}>
+                  {stats?.uniqueProducts || 0}
+                </div>
+              </div>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={6}>
-          <Card>
-            <Statistic
-              title="已分析评论"
-              value={stats?.analyzedComments || 0}
-              prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />}
-              valueStyle={{ color: '#faad14' }}
-            />
+          <Card 
+            hoverable
+            style={{ 
+              background: 'linear-gradient(135deg, #fffbe6 0%, #fff7d6 100%)',
+              border: '1px solid #ffd591'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #faad14, #ffc53d)',
+                borderRadius: '12px',
+                padding: '12px',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <ThunderboltOutlined style={{ fontSize: '20px', color: 'white' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>已分析评论</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#faad14' }}>
+                  {stats?.analyzedComments || 0}
+                </div>
+              </div>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={6}>
-          <Card>
-            <Statistic
-              title="爬虫配置"
-              value={stats?.totalConfigs || 0}
-              prefix={<BarChartOutlined style={{ color: '#722ed1' }} />}
-              valueStyle={{ color: '#722ed1' }}
-            />
+          <Card 
+            hoverable
+            style={{ 
+              background: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+              border: '1px solid #d3adf7'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #722ed1, #9254de)',
+                borderRadius: '12px',
+                padding: '12px',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <BarChartOutlined style={{ fontSize: '20px', color: 'white' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>爬虫配置</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#722ed1' }}>
+                  {stats?.totalConfigs || 0}
+                </div>
+              </div>
+            </div>
           </Card>
         </Col>
       </Row>

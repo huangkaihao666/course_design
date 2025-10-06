@@ -266,15 +266,70 @@ const CrawlerConfig: React.FC<CrawlerConfigProps> = ({ onViewResults, onCrawlSta
 
   return (
     <div style={{ padding: '24px' }}>
-      <Card>
-        <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
+      <Card 
+        style={{ 
+          background: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+          marginBottom: '32px',
+          border: '1px solid #b7eb8f',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+        bodyStyle={{ padding: '32px' }}
+      >
+        {/* 背景装饰 */}
+        <div style={{
+          position: 'absolute',
+          top: '-50px',
+          right: '-50px',
+          width: '200px',
+          height: '200px',
+          background: 'rgba(82, 196, 26, 0.08)',
+          borderRadius: '50%',
+          zIndex: 0
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-30px',
+          left: '-30px',
+          width: '150px',
+          height: '150px',
+          background: 'rgba(82, 196, 26, 0.05)',
+          borderRadius: '50%',
+          zIndex: 0
+        }} />
+        
+        <Row justify="space-between" align="middle" style={{ position: 'relative', zIndex: 1 }}>
           <Col>
-            <Title level={3} style={{ margin: 0 }}>
-              <DatabaseOutlined /> 爬虫配置管理
-            </Title>
-            <Text type="secondary">
-              管理商品评论爬取配置，设置商品ID、Cookie和爬取参数
-            </Text>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{
+                background: 'rgba(82, 196, 26, 0.1)',
+                borderRadius: '12px',
+                padding: '12px',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <DatabaseOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
+              </div>
+              <div>
+                <Title level={1} style={{ 
+                  margin: 0, 
+                  color: '#52c41a', 
+                  fontSize: '32px',
+                  fontWeight: 'bold'
+                }}>
+                  爬虫配置管理
+                </Title>
+                <Text style={{ 
+                  color: '#73d13d', 
+                  fontSize: '16px',
+                  fontWeight: '500'
+                }}>
+                  🕷️ 管理商品评论爬取配置，设置商品ID、Cookie和爬取参数
+                </Text>
+              </div>
+            </div>
           </Col>
           <Col>
             <Space>

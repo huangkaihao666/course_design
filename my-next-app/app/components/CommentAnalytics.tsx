@@ -469,15 +469,70 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
 
   return (
     <div style={{ padding: '24px' }}>
-      <Card>
-        <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
+      <Card 
+        style={{ 
+          background: 'linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%)',
+          marginBottom: '32px',
+          border: '1px solid #ffbb96',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+        bodyStyle={{ padding: '32px' }}
+      >
+        {/* 背景装饰 */}
+        <div style={{
+          position: 'absolute',
+          top: '-50px',
+          right: '-50px',
+          width: '200px',
+          height: '200px',
+          background: 'rgba(250, 84, 28, 0.08)',
+          borderRadius: '50%',
+          zIndex: 0
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-30px',
+          left: '-30px',
+          width: '150px',
+          height: '150px',
+          background: 'rgba(250, 84, 28, 0.05)',
+          borderRadius: '50%',
+          zIndex: 0
+        }} />
+        
+        <Row justify="space-between" align="middle" style={{ position: 'relative', zIndex: 1 }}>
           <Col>
-            <Title level={3} style={{ margin: 0 }}>
-              <MessageOutlined /> 评论分析
-            </Title>
-            <Text type="secondary">
-              共 {comments.length} 条评论
-            </Text>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{
+                background: 'rgba(250, 84, 28, 0.1)',
+                borderRadius: '12px',
+                padding: '12px',
+                marginRight: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <MessageOutlined style={{ fontSize: '24px', color: '#fa541c' }} />
+              </div>
+              <div>
+                <Title level={1} style={{ 
+                  margin: 0, 
+                  color: '#fa541c', 
+                  fontSize: '32px',
+                  fontWeight: 'bold'
+                }}>
+                  评论分析
+                </Title>
+                <Text style={{ 
+                  color: '#ff7a45', 
+                  fontSize: '16px',
+                  fontWeight: '500'
+                }}>
+                  🔍 智能分析评论情感和爆火原因，共 {comments.length} 条评论
+                </Text>
+              </div>
+            </div>
           </Col>
           <Col>
             <Space>

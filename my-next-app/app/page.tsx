@@ -161,7 +161,7 @@ export default function Home() {
       />
       
       <Layout style={{ marginLeft: collapsed ? 80 : 250, transition: 'margin-left 0.2s' }}>
-        <Header style={{ 
+        {/* <Header style={{ 
           background: '#fff', 
           padding: '0 24px', 
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -189,7 +189,7 @@ export default function Home() {
               {selectedMenu === 'settings' && '系统设置'}
             </h2>
           </div>
-        </Header>
+        </Header> */}
 
         <Content style={{ 
           background: '#f5f5f5',

@@ -325,10 +325,69 @@ const CommentResults: React.FC<CommentResultsProps> = ({ productId, productName,
           )}
         </Space>
         
-        <Title level={2}>
-          <EyeOutlined style={{ marginRight: 8 }} />
-          评论分析结果
-        </Title>
+        <Card 
+          style={{ 
+            background: 'linear-gradient(135deg, #f0f5ff 0%, #d6e4ff 100%)',
+            marginBottom: '24px',
+            border: '1px solid #d3adf7',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+          bodyStyle={{ padding: '24px' }}
+        >
+          {/* 背景装饰 */}
+          <div style={{
+            position: 'absolute',
+            top: '-30px',
+            right: '-30px',
+            width: '120px',
+            height: '120px',
+            background: 'rgba(114, 46, 209, 0.08)',
+            borderRadius: '50%',
+            zIndex: 0
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '-20px',
+            left: '-20px',
+            width: '80px',
+            height: '80px',
+            background: 'rgba(114, 46, 209, 0.05)',
+            borderRadius: '50%',
+            zIndex: 0
+          }} />
+          
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center' }}>
+            <div style={{
+              background: 'rgba(114, 46, 209, 0.1)',
+              borderRadius: '12px',
+              padding: '12px',
+              marginRight: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <EyeOutlined style={{ fontSize: '24px', color: '#722ed1' }} />
+            </div>
+            <div>
+              <Title level={1} style={{ 
+                margin: 0, 
+                color: '#722ed1', 
+                fontSize: '28px',
+                fontWeight: 'bold'
+              }}>
+                评论分析结果
+              </Title>
+              <Text style={{ 
+                color: '#9254de', 
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                📈 查看详细的评论分析数据和统计信息
+              </Text>
+            </div>
+          </div>
+        </Card>
         <div style={{ marginBottom: 16 }}>
           <Text type="secondary">商品: {productName || `ID: ${productId}`}</Text>
           {crawlRecords.length > 0 && (
@@ -341,7 +400,7 @@ const CommentResults: React.FC<CommentResultsProps> = ({ productId, productName,
                     size="small"
                     type={selectedCrawlRecord?.id === record.id ? 'primary' : 'default'}
                     onClick={() => setSelectedCrawlRecord(record)}
-                    style={{ textAlign: 'left', height: 'auto', padding: '4px 8px' }}
+                     style={{ textAlign: 'left', height: 'auto', padding: '4px 8px' }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                       <div style={{ fontWeight: 'bold', fontSize: '12px' }}>
