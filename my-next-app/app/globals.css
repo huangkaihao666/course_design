@@ -69,6 +69,75 @@ body {
   color: #1890ff;
 }
 
+/* 流式渲染动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* 分析进度动画 */
+.analyzing-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* 流式结果卡片动画 */
+.streaming-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* 当前分析评论高亮效果 */
+.current-analyzing {
+  animation: slideInRight 0.5s ease-out;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* 打字机效果 */
+.typing-effect {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 2s steps(40, end);
+}
+
+/* 分析结果闪烁效果 */
+.analysis-result {
+  animation: fadeInUp 0.8s ease-out;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .ant-layout-header {

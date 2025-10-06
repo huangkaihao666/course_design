@@ -53,6 +53,8 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0 });
   const [selectedProductId, setSelectedProductId] = useState<string>(propProductId || '');
   const [products, setProducts] = useState<any[]>([]);
+  const [streamingResults, setStreamingResults] = useState<CommentWithAnalysis[]>([]);
+  const [currentAnalyzingComment, setCurrentAnalyzingComment] = useState<CommentWithAnalysis | null>(null);
 
   // 获取商品列表
   const fetchProducts = async () => {
@@ -113,12 +115,18 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
 
     setAnalyzing(true);
     setAnalysisProgress({ current: 0, total: comments.length });
+    setStreamingResults([]);
+    setCurrentAnalyzingComment(null);
     
     try {
       // 逐条分析评论
       const updatedComments = [...comments];
+      const streamingResults: CommentWithAnalysis[] = [];
       
       for (let i = 0; i < comments.length; i++) {
+        // 设置当前正在分析的评论
+        setCurrentAnalyzingComment(comments[i]);
+        
         try {
           const response = await fetch('/api/sentiment', {
             method: 'POST',
@@ -135,29 +143,39 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
           
           if (response.ok && result.comments && result.comments.length > 0) {
             updatedComments[i] = result.comments[0];
-      } else {
+            streamingResults.push(result.comments[0]);
+          } else {
             updatedComments[i] = {
               ...updatedComments[i],
               analysisError: result.error || '分析失败'
             };
+            streamingResults.push({
+              ...updatedComments[i],
+              analysisError: result.error || '分析失败'
+            });
           }
         } catch (error) {
           updatedComments[i] = {
             ...updatedComments[i],
             analysisError: '分析过程中出现错误'
           };
+          streamingResults.push({
+            ...updatedComments[i],
+            analysisError: '分析过程中出现错误'
+          });
         }
         
-        // 更新进度
+        // 更新进度和流式结果
         setAnalysisProgress({ current: i + 1, total: comments.length });
-        
-        // 更新评论列表（实时显示进度）
+        setStreamingResults([...streamingResults]);
         setComments([...updatedComments]);
         
-        // 添加小延迟，让用户看到进度
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // 添加延迟，让用户看到流式效果
+        await new Promise(resolve => setTimeout(resolve, 800));
       }
       
+      // 分析完成，清除当前分析状态
+      setCurrentAnalyzingComment(null);
       message.success(`分析完成！成功分析 ${updatedComments.filter(c => c.analysis).length} 条评论`);
       calculateStats(updatedComments);
       
@@ -167,6 +185,7 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
     } finally {
       setAnalyzing(false);
       setAnalysisProgress({ current: 0, total: 0 });
+      setCurrentAnalyzingComment(null);
     }
   };
 
@@ -603,27 +622,131 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
             </Button>
           </Empty>
         ) : analyzing ? (
-          // 显示分析进度
-          <Card style={{ textAlign: 'center', marginBottom: 24 }}>
-            <Space direction="vertical" size="large">
-              <div>
-                <ThunderboltOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} spin />
-                <Title level={3}>分析进行中...</Title>
+          // 显示流式分析进度
+          <div>
+            {/* 分析进度卡片 */}
+            <Card style={{ textAlign: 'center', marginBottom: 24 }}>
+              <Space direction="vertical" size="large">
+                <div>
+                  <ThunderboltOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} spin />
+                  <Title level={3}>AI分析进行中...</Title>
+                  <Text type="secondary">
+                    正在分析评论 {analysisProgress.current}/{analysisProgress.total}
+                  </Text>
+                </div>
+                <Progress 
+                  percent={Math.round((analysisProgress.current / analysisProgress.total) * 100)} 
+                  status="active" 
+                  strokeColor="#1890ff"
+                  style={{ maxWidth: 400, margin: '0 auto' }}
+                />
                 <Text type="secondary">
-                  正在分析评论 {analysisProgress.current}/{analysisProgress.total}
+                  {analysisType === 'sentiment_analysis' ? '情感分析' : '爆火原因分析'} 进行中...
                 </Text>
-              </div>
-              <Progress 
-                percent={Math.round((analysisProgress.current / analysisProgress.total) * 100)} 
-                status="active" 
-                strokeColor="#1890ff"
-                style={{ maxWidth: 400, margin: '0 auto' }}
-              />
-              <Text type="secondary">
-                {analysisType === 'sentiment_analysis' ? '情感分析' : '爆火原因分析'} 进行中...
-              </Text>
-            </Space>
-          </Card>
+              </Space>
+            </Card>
+
+            {/* 当前分析的评论 */}
+            {currentAnalyzingComment && (
+              <Card 
+                title={
+                  <Space>
+                    <ThunderboltOutlined style={{ color: '#1890ff' }} className="analyzing-pulse" />
+                    <span>正在分析</span>
+                  </Space>
+                }
+                style={{ marginBottom: 16, border: '2px solid #1890ff' }}
+                className="current-analyzing"
+              >
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+                  <Text strong style={{ marginRight: 8 }}>用户：</Text>
+                  <Text>{currentAnalyzingComment.user_nick}</Text>
+                  <Text style={{ margin: '0 16px' }}>|</Text>
+                  <Text strong style={{ marginRight: 8 }}>评分：</Text>
+                  <Badge 
+                    count={currentAnalyzingComment.rating} 
+                    style={{ backgroundColor: currentAnalyzingComment.rating >= 7 ? '#52c41a' : currentAnalyzingComment.rating >= 4 ? '#faad14' : '#ff4d4f' }}
+                  />
+                </div>
+                <Paragraph 
+                  ellipsis={{ rows: 3, expandable: true, symbol: '展开' }}
+                  style={{ margin: 0, fontSize: '14px', color: '#666' }}
+                >
+                  {currentAnalyzingComment.content}
+                </Paragraph>
+              </Card>
+            )}
+
+            {/* 已分析完成的评论流式展示 */}
+            {streamingResults.length > 0 && (
+              <Card 
+                title={
+                  <Space>
+                    <MessageOutlined style={{ color: '#52c41a' }} />
+                    <span>分析结果 ({streamingResults.length} 条)</span>
+                  </Space>
+                }
+                style={{ marginBottom: 16 }}
+              >
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {streamingResults.map((comment, index) => (
+                    <Card 
+                      key={`streaming-${comment.id}-${index}`}
+                      size="small" 
+                      className="streaming-card analysis-result"
+                      style={{ 
+                        marginBottom: 8, 
+                        border: '1px solid #d9d9d9'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                        <Text strong style={{ marginRight: 8, fontSize: '12px' }}>用户：</Text>
+                        <Text style={{ fontSize: '12px' }}>{comment.user_nick}</Text>
+                        <Text style={{ margin: '0 8px', fontSize: '12px' }}>|</Text>
+                        <Text strong style={{ marginRight: 4, fontSize: '12px' }}>评分：</Text>
+                        <Badge 
+                          count={comment.rating} 
+                          style={{ 
+                            backgroundColor: comment.rating >= 7 ? '#52c41a' : comment.rating >= 4 ? '#faad14' : '#ff4d4f',
+                            fontSize: '10px'
+                          }}
+                        />
+                        <div style={{ flex: 1, textAlign: 'right' }}>
+                          {comment.analysisError ? (
+                            <Tag color="red" style={{ fontSize: '10px' }}>分析失败</Tag>
+                          ) : comment.analysis ? (
+                            <Tag 
+                              color={getSentimentColor((comment.analysis as any).emotion_type)}
+                              style={{ fontSize: '10px' }}
+                            >
+                              {(comment.analysis as any).emotion_type === 'positive' ? '正面' : 
+                               (comment.analysis as any).emotion_type === 'negative' ? '负面' : '中性'}
+                            </Tag>
+                          ) : (
+                            <Tag color="default" style={{ fontSize: '10px' }}>分析中</Tag>
+                          )}
+                        </div>
+                      </div>
+                      <Paragraph 
+                        ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
+                        style={{ margin: 0, fontSize: '12px', color: '#666' }}
+                      >
+                        {comment.content}
+                      </Paragraph>
+                      {comment.analysis && !comment.analysisError && (
+                        <div style={{ marginTop: 8, padding: '8px', background: '#f0f9ff', borderRadius: '4px' }}>
+                          <Text style={{ fontSize: '11px', color: '#1890ff' }}>
+                            <strong>分析理由：</strong>
+                            {(comment.analysis as any).analysis_reasons || '暂无'}
+                          </Text>
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
         ) : (
           <>
             {/* 统计卡片 */}
