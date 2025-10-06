@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS spider_configs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     curl_parse_id INT NOT NULL COMMENT '关联的curl解析ID',
     product_id VARCHAR(100) NOT NULL COMMENT '商品ID',
+    product_name VARCHAR(500) COMMENT '商品名称',
     cookies TEXT NOT NULL COMMENT 'cookies字符串',
     max_pages INT DEFAULT 3 COMMENT '最大页数',
     page_size INT DEFAULT 20 COMMENT '每页大小',

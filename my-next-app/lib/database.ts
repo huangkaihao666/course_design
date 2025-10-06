@@ -54,7 +54,29 @@ export class DatabaseService {
     const connection = await pool.getConnection();
     try {
       const [rows] = await connection.execute(
-        `SELECT sc.*, cp.url, cp.method 
+        `SELECT 
+           sc.id,
+           sc.curl_parse_id,
+           sc.product_id,
+           COALESCE(
+             sc.product_name,
+             (SELECT c.product_name FROM comments c WHERE c.product_id = sc.product_id ORDER BY c.created_at DESC LIMIT 1),
+             CONCAT('商品ID: ', sc.product_id)
+           ) AS product_name,
+           sc.cookies,
+           sc.max_pages,
+           sc.page_size,
+           sc.config_name,
+           sc.config_description,
+           sc.is_active,
+           sc.last_crawl_at,
+           sc.crawl_count,
+           sc.success_count,
+           sc.created_at,
+           sc.updated_at,
+           sc.created_by,
+           cp.url,
+           cp.method
          FROM spider_configs sc 
          LEFT JOIN curl_parses cp ON sc.curl_parse_id = cp.id 
          ORDER BY sc.created_at DESC`
@@ -70,7 +92,29 @@ export class DatabaseService {
     const connection = await pool.getConnection();
     try {
       const [rows] = await connection.execute(
-        `SELECT sc.*, cp.url, cp.method 
+        `SELECT 
+           sc.id,
+           sc.curl_parse_id,
+           sc.product_id,
+           COALESCE(
+             sc.product_name,
+             (SELECT c.product_name FROM comments c WHERE c.product_id = sc.product_id ORDER BY c.created_at DESC LIMIT 1),
+             CONCAT('商品ID: ', sc.product_id)
+           ) AS product_name,
+           sc.cookies,
+           sc.max_pages,
+           sc.page_size,
+           sc.config_name,
+           sc.config_description,
+           sc.is_active,
+           sc.last_crawl_at,
+           sc.crawl_count,
+           sc.success_count,
+           sc.created_at,
+           sc.updated_at,
+           sc.created_by,
+           cp.url,
+           cp.method
          FROM spider_configs sc 
          LEFT JOIN curl_parses cp ON sc.curl_parse_id = cp.id 
          WHERE sc.product_id = ? 
@@ -88,7 +132,29 @@ export class DatabaseService {
     const connection = await pool.getConnection();
     try {
       const [rows] = await connection.execute(
-        `SELECT sc.*, cp.url, cp.method 
+        `SELECT 
+           sc.id,
+           sc.curl_parse_id,
+           sc.product_id,
+           COALESCE(
+             sc.product_name,
+             (SELECT c.product_name FROM comments c WHERE c.product_id = sc.product_id ORDER BY c.created_at DESC LIMIT 1),
+             CONCAT('商品ID: ', sc.product_id)
+           ) AS product_name,
+           sc.cookies,
+           sc.max_pages,
+           sc.page_size,
+           sc.config_name,
+           sc.config_description,
+           sc.is_active,
+           sc.last_crawl_at,
+           sc.crawl_count,
+           sc.success_count,
+           sc.created_at,
+           sc.updated_at,
+           sc.created_by,
+           cp.url,
+           cp.method
          FROM spider_configs sc 
          LEFT JOIN curl_parses cp ON sc.curl_parse_id = cp.id 
          ORDER BY sc.created_at DESC 

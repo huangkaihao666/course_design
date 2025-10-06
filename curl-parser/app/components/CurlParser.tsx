@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ParsedCurl, SpiderConfig, ConfigPreset } from '../types';
-import { App } from 'antd';
+import { App, Modal, Input, Form, Button } from 'antd';
 import HelpGuide from './HelpGuide';
 import Header from './parser/Header';
 import MessageAlerts from './parser/MessageAlerts';
@@ -24,6 +24,8 @@ export default function CurlParser() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'parser' | 'configs' | 'database'>('parser');
+  const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const [form] = Form.useForm();
 
   // 加载保存的配置
   useEffect(() => {
@@ -76,31 +78,8 @@ export default function CurlParser() {
       if (result.success) {
         setParsedData(result.data);
         message.success('🎉 Curl命令解析成功！');
-        
-        // 自动保存到数据库
-        try {
-          const saveResponse = await fetch('/api/save-parse', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              parsedData: result.data,
-              configName: `解析配置_${new Date().toLocaleString()}`,
-              configDescription: '自动保存的curl解析配置',
-            }),
-          });
-
-          const saveResult = await saveResponse.json();
-          if (saveResult.success) {
-            message.success('💾 数据已成功保存到数据库！');
-          } else {
-            message.warning('⚠️ 解析成功，但保存到数据库失败');
-          }
-        } catch (saveError) {
-          message.warning('⚠️ 解析成功，但保存到数据库失败');
-          console.error('保存到数据库失败:', saveError);
-        }
+        // 显示保存确认对话框
+        setSaveModalVisible(true);
       } else {
         message.error(result.error || '解析失败');
         setError(result.error || '解析失败');
@@ -198,6 +177,53 @@ export default function CurlParser() {
     message.info('📝 示例curl命令已加载');
   };
 
+  // 保存到数据库
+  const handleSaveToDatabase = async (values: { productName: string; configName: string; configDescription: string }) => {
+    if (!parsedData) return;
+
+    try {
+      setLoading(true);
+      const saveResponse = await fetch('/api/save-parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parsedData: {
+            ...parsedData,
+            config: {
+              ...parsedData.config,
+              productName: values.productName
+            }
+          },
+          configName: values.configName,
+          configDescription: values.configDescription,
+        }),
+      });
+
+      const saveResult = await saveResponse.json();
+      if (saveResult.success) {
+        message.success('💾 数据已成功保存到数据库！');
+        setSaveModalVisible(false);
+        form.resetFields();
+        loadConfigs(); // 重新加载配置列表
+      } else {
+        message.error('保存到数据库失败：' + saveResult.error);
+      }
+    } catch (saveError) {
+      message.error('保存到数据库失败');
+      console.error('保存到数据库失败:', saveError);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 取消保存
+  const handleCancelSave = () => {
+    setSaveModalVisible(false);
+    form.resetFields();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto w-full pb-8">
@@ -260,6 +286,87 @@ export default function CurlParser() {
             onCopyToClipboard={copyToClipboard}
           />
         )}
+
+        {/* 保存确认对话框 */}
+        <Modal
+          title="💾 保存配置到数据库"
+          open={saveModalVisible}
+          onCancel={handleCancelSave}
+          footer={null}
+          width={600}
+          centered
+        >
+          <div className="p-4">
+            <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-semibold text-blue-800 mb-2">📋 解析信息</h4>
+              <div className="text-sm text-blue-700">
+                <p><strong>商品ID:</strong> {parsedData?.config.productId}</p>
+                <p><strong>请求方法:</strong> {parsedData?.parsed.method}</p>
+                <p><strong>URL:</strong> <span className="text-xs break-all">{parsedData?.parsed.url}</span></p>
+              </div>
+            </div>
+
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSaveToDatabase}
+              initialValues={{
+                configName: `解析配置_${new Date().toLocaleString()}`,
+                configDescription: '通过curl解析器生成的爬虫配置'
+              }}
+            >
+              <Form.Item
+                name="productName"
+                label="🛍️ 商品名称"
+                rules={[{ required: true, message: '请输入商品名称' }]}
+                extra="请输入这个curl请求对应的商品名称，这将用于爬虫配置管理"
+              >
+                <Input 
+                  placeholder="例如：iPhone 15 Pro Max 256GB 深空黑色"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="configName"
+                label="📝 配置名称"
+                rules={[{ required: true, message: '请输入配置名称' }]}
+              >
+                <Input 
+                  placeholder="配置名称"
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="configDescription"
+                label="📄 配置描述"
+              >
+                <Input.TextArea 
+                  rows={3}
+                  placeholder="配置描述（可选）"
+                />
+              </Form.Item>
+
+              <Form.Item className="mb-0">
+                <div className="flex justify-end gap-3">
+                  <Button onClick={handleCancelSave} size="large">
+                    取消
+                  </Button>
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    loading={loading}
+                    size="large"
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    💾 保存到数据库
+                  </Button>
+                </div>
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
       </div>
     </div>
   );

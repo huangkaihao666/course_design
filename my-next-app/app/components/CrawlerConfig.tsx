@@ -24,7 +24,8 @@ import {
   EditOutlined,
   DeleteOutlined,
   PlayCircleOutlined,
-  DatabaseOutlined
+  DatabaseOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import CrawlProgress from './CrawlProgress';
 
@@ -277,6 +278,15 @@ const CrawlerConfig: React.FC<CrawlerConfigProps> = ({ onViewResults, onCrawlSta
           </Col>
           <Col>
             <Space>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchConfigs}
+                loading={loading}
+                size="large"
+                title="刷新配置列表"
+              >
+                刷新
+              </Button>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}

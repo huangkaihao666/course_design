@@ -60,6 +60,7 @@ export class DatabaseService {
   static async saveSpiderConfig(data: {
     curlParseId: number;
     productId: string;
+    productName?: string;
     cookies: string;
     maxPages: number;
     pageSize: number;
@@ -72,11 +73,12 @@ export class DatabaseService {
     const connection = await pool.getConnection();
     try {
       const [result] = await connection.execute(
-        `INSERT INTO spider_configs (curl_parse_id, product_id, cookies, max_pages, page_size, headers, base_url, api_params, config_name, config_description) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO spider_configs (curl_parse_id, product_id, product_name, cookies, max_pages, page_size, headers, base_url, api_params, config_name, config_description) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           data.curlParseId,
           data.productId,
+          data.productName || `商品ID: ${data.productId}`,
           data.cookies,
           data.maxPages,
           data.pageSize,

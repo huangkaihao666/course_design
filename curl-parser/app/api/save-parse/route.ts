@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     const spiderConfigId = await DatabaseService.saveSpiderConfig({
       curlParseId,
       productId: config.productId,
+      productName: config.productName || `商品ID: ${config.productId}`,
       cookies: config.cookies,
       maxPages: config.maxPages,
       pageSize: config.pageSize,
