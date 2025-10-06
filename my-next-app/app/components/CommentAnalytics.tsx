@@ -363,9 +363,9 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
       ),
     },
     {
-      title: '分析结果',
-      key: 'analysis',
-      width: 200,
+      title: '情感分析',
+      key: 'sentiment',
+      width: 150,
       render: (record: CommentWithAnalysis) => {
         if (record.analysisError) {
           return <Tag color="red">分析失败</Tag>;
@@ -375,33 +375,65 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
           return <Tag color="default">未分析</Tag>;
         }
 
-        if (analysisType === 'sentiment_analysis') {
-          const analysis = record.analysis as SentimentAnalysisResult;
-          return (
-            <Space direction="vertical" size="small">
-              <Tag 
-                color={getSentimentColor(analysis.emotion_type)}
-                icon={getSentimentIcon(analysis.emotion_type)}
-              >
-                {analysis.emotion_type === 'positive' ? '正面' : 
-                 analysis.emotion_type === 'negative' ? '负面' : '中性'}
-              </Tag>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                置信度: {Math.round(analysis.confidence_score * 100)}%
-              </Text>
-            </Space>
-          );
-        } else {
-          const analysis = record.analysis as BoomReasonAnalysisResult;
-          return (
-            <Space direction="vertical" size="small">
-              <Tag color="blue">{analysis.tag}</Tag>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {analysis.reason}
-              </Text>
-            </Space>
-          );
+        const analysis = record.analysis as any;
+        return (
+          <Space direction="vertical" size="small">
+            <Tag 
+              color={getSentimentColor(analysis.emotion_type)}
+              icon={getSentimentIcon(analysis.emotion_type)}
+            >
+              {analysis.emotion_type === 'positive' ? '正面' : 
+               analysis.emotion_type === 'negative' ? '负面' : '中性'}
+            </Tag>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              置信度: {Math.round((analysis.confidence_score || 0) * 100)}%
+            </Text>
+          </Space>
+        );
+      },
+    },
+    {
+      title: '分析理由',
+      key: 'analysis_reasons',
+      width: 300,
+      render: (record: CommentWithAnalysis) => {
+        if (!record.analysis) {
+          return <Text type="secondary">-</Text>;
         }
+        
+        const analysis = record.analysis as any;
+        const reasons = analysis.analysis_reasons;
+        
+        return (
+          <Paragraph 
+            ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
+            style={{ margin: 0, fontSize: '12px' }}
+          >
+            {reasons || '-'}
+          </Paragraph>
+        );
+      },
+    },
+    {
+      title: '改进建议',
+      key: 'improvement',
+      width: 200,
+      render: (record: CommentWithAnalysis) => {
+        if (!record.analysis) {
+          return <Text type="secondary">-</Text>;
+        }
+        
+        const analysis = record.analysis as any;
+        const suggestions = analysis.improvement_suggestions;
+        
+        return (
+          <Paragraph 
+            ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
+            style={{ margin: 0, fontSize: '12px' }}
+          >
+            {suggestions || '-'}
+          </Paragraph>
+        );
       },
     },
     {
@@ -657,7 +689,7 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
                   showTotal: (total, range) => 
                     `第 ${range[0]}-${range[1]} 条，共 ${total} 条评论`,
                 }}
-                scroll={{ x: 800 }}
+                scroll={{ x: 1200 }}
               />
             </Card>
           </>
