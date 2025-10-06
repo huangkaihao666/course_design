@@ -128,6 +128,33 @@ const CrawlProgress: React.FC<CrawlProgressProps> = ({
           pages: config.max_pages,
           success: true
         });
+
+        // 发送自定义事件通知其他组件刷新数据
+        if (result.refreshNeeded) {
+          addLog('正在刷新评论分析页面数据...', 'info');
+          // 发送自定义事件
+          const event = new CustomEvent('crawlCompleted', {
+            detail: {
+              productId: config.product_id,
+              productName: result.productInfo?.product_name || config.product_name,
+              commentCount: result.data?.length || 0
+            }
+          });
+          console.log('发送爬取完成事件:', event.detail);
+          window.dispatchEvent(event);
+        } else {
+          // 即使没有refreshNeeded标志，也发送事件确保数据同步
+          addLog('发送数据同步事件...', 'info');
+          const event = new CustomEvent('crawlCompleted', {
+            detail: {
+              productId: config.product_id,
+              productName: result.productInfo?.product_name || config.product_name,
+              commentCount: result.data?.length || 0
+            }
+          });
+          console.log('发送数据同步事件:', event.detail);
+          window.dispatchEvent(event);
+        }
       } else {
         throw new Error(result.error || '爬取失败');
       }

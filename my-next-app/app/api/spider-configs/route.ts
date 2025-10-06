@@ -3,7 +3,15 @@ import { DatabaseService } from '../../../lib/database';
 
 export async function GET(request: NextRequest) {
   try {
-    const configs = await DatabaseService.getSpiderConfigs();
+    const { searchParams } = new URL(request.url);
+    const productId = searchParams.get('productId');
+    
+    let configs;
+    if (productId) {
+      configs = await DatabaseService.getSpiderConfigByProductId(productId);
+    } else {
+      configs = await DatabaseService.getSpiderConfigs();
+    }
     
     return NextResponse.json({
       success: true,

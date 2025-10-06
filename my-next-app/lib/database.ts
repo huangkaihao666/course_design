@@ -22,6 +22,11 @@ export default pool;
 
 // 数据库操作函数
 export class DatabaseService {
+  // 获取数据库连接
+  static async getConnection() {
+    return await pool.getConnection();
+  }
+
   // 获取所有curl解析数据
   static async getAllCurlParses() {
     const connection = await pool.getConnection();
@@ -209,18 +214,34 @@ export class DatabaseService {
   static async saveComments(productId: string, comments: any[], productInfo: any = null) {
     const connection = await pool.getConnection();
     try {
-      // 先删除该商品的历史评论数据
-      await connection.execute(
-        `DELETE FROM comments WHERE product_id = ?`,
-        [productId]
-      );
-
+      // 生成唯一的爬取批次ID
+      const crawlBatchId = `${productId}_${Date.now()}`;
+      
       // 批量插入新评论数据
       if (comments.length > 0) {
-        const productName = productInfo?.product_name || `商品ID: ${productId}`;
+        // 优先使用传入的productInfo，否则从spider_configs表获取
+        let productName = productInfo?.product_name;
+        
+        if (!productName) {
+          // 从spider_configs表获取商品名称
+          const [configRows] = await connection.execute(
+            `SELECT product_name FROM spider_configs WHERE product_id = ? ORDER BY created_at DESC LIMIT 1`,
+            [productId]
+          );
+          
+          if ((configRows as any[]).length > 0) {
+            productName = (configRows as any[])[0].product_name;
+          }
+        }
+        
+        // 如果还是没有商品名称，使用默认值
+        if (!productName || productName.trim() === '') {
+          productName = '其他';
+        }
         
         const values = comments.map(comment => [
           productId,
+          crawlBatchId,
           productName,
           comment.user_nick || '',
           comment.content || '',
@@ -232,16 +253,16 @@ export class DatabaseService {
           JSON.stringify(comment.pics || [])
         ]);
 
-        const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+        const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
         const flatValues = values.flat();
 
         await connection.execute(
-          `INSERT INTO comments (product_id, product_name, user_nick, content, rating, date, useful_count, reply, sku_info, pics) VALUES ${placeholders}`,
+          `INSERT INTO comments (product_id, crawl_batch_id, product_name, user_nick, content, rating, date, useful_count, reply, sku_info, pics) VALUES ${placeholders}`,
           flatValues
         );
       }
 
-      return { success: true, count: comments.length };
+      return { success: true, count: comments.length, crawlBatchId };
     } catch (error) {
       console.error('保存评论数据失败:', error);
       throw error;
@@ -257,6 +278,20 @@ export class DatabaseService {
       const [rows] = await connection.execute(
         `SELECT * FROM comments WHERE product_id = ? ORDER BY created_at DESC`,
         [productId]
+      );
+      return rows;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // 根据商品ID和批次ID获取评论数据
+  static async getCommentsByBatchId(productId: string, batchId: string) {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute(
+        `SELECT * FROM comments WHERE product_id = ? AND crawl_batch_id = ? ORDER BY created_at DESC`,
+        [productId, batchId]
       );
       return rows;
     } finally {
@@ -556,6 +591,47 @@ export class DatabaseService {
       await connection.execute(
         `UPDATE comments SET analysis = ? WHERE id = ?`,
         [JSON.stringify(analysisData), commentId]
+      );
+      return true;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // 更新爬虫配置的商品名称
+  static async updateSpiderConfigProductName(id: number, productName: string) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.execute(
+        `UPDATE spider_configs SET product_name = ? WHERE id = ?`,
+        [productName, id]
+      );
+      return true;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // 更新评论表的商品名称
+  static async updateCommentsProductName(productId: string, productName: string) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.execute(
+        `UPDATE comments SET product_name = ? WHERE product_id = ?`,
+        [productName, productId]
+      );
+      return true;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // 更新空的商品名称为"其他"
+  static async updateEmptyProductNames() {
+    const connection = await pool.getConnection();
+    try {
+      await connection.execute(
+        `UPDATE comments SET product_name = '其他' WHERE product_name IS NULL OR product_name = ''`
       );
       return true;
     } finally {

@@ -388,7 +388,13 @@ def main():
     # 获取商品信息
     product_info = spider.get_product_info(product_id)
     if product_info.get('success'):
-        product_name = product_info.get('product_name', product_name)
+        # 优先使用数据库中的商品名称，只有在数据库中没有时才使用API返回的名称
+        api_product_name = product_info.get('product_name', '')
+        if api_product_name and api_product_name != f'商品ID: {product_id}' and product_name == f'商品ID: {product_id}':
+            product_name = api_product_name
+            print(f"🔍 使用API返回的商品名称: {product_name}")
+        else:
+            print(f"🔍 保持数据库中的商品名称: {product_name}")
     print(f"📦 商品信息: {product_info}")
     
     print(f"📡 开始获取评论数据...")

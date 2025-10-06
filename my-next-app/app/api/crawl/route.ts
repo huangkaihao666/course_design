@@ -65,44 +65,27 @@ export async function POST(request: NextRequest) {
     const result = await runSpider(spiderPath, productId, actualMaxPages, cookies);
 
     if (result.success) {
+      console.log('🔍 爬虫执行结果:', result);
       // 检查是否有爬虫数据
       if (result.data && result.data.comments) {
         console.log(`✅ 爬虫返回了 ${result.data.comments.length} 条评论数据`);
         
-        // 保存数据到数据库
-        try {
-          console.log('💾 保存评论数据到数据库...');
-          // 这里需要实现保存到数据库的逻辑
-          // 暂时直接返回数据
-          
-          return NextResponse.json({
-            success: true,
-            data: result.data.comments,
-            productInfo: result.data.product_info || { product_name: `商品ID: ${productId}` },
-            message: `成功爬取并保存到数据库，共 ${result.data.comments.length} 条评论`,
-            debug: {
-              usedDatabase: useDatabase,
-              cookiesLength: cookies.length,
-              actualMaxPages: actualMaxPages,
-              configFound: configFound
-            }
-          });
-        } catch (error) {
-          console.error('保存数据到数据库失败:', error);
-          return NextResponse.json({
-            success: true,
-            data: result.data.comments,
-            productInfo: result.data.product_info || { product_name: `商品ID: ${productId}` },
-            message: `成功爬取，共 ${result.data.comments.length} 条评论（保存到数据库失败）`,
-            debug: {
-              usedDatabase: useDatabase,
-              cookiesLength: cookies.length,
-              actualMaxPages: actualMaxPages,
-              configFound: configFound,
-              saveError: error instanceof Error ? error.message : String(error)
-            }
-          });
-        }
+        // 数据已经在runSpider函数中保存到数据库，这里直接返回结果
+        console.log('✅ 数据已在runSpider中保存，直接返回结果');
+        
+        return NextResponse.json({
+          success: true,
+          data: result.data.comments,
+          productInfo: result.data.product_info || { product_name: `商品ID: ${productId}` },
+          message: `成功爬取并保存到数据库，共 ${result.data.comments.length} 条评论`,
+          refreshNeeded: true, // 告诉前端需要刷新数据
+          debug: {
+            usedDatabase: useDatabase,
+            cookiesLength: cookies.length,
+            actualMaxPages: actualMaxPages,
+            configFound: configFound
+          }
+        });
       } else {
         // 没有获取到数据，尝试从数据库获取
         try {
@@ -232,7 +215,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: comments,
-      message: `找到 ${comments.length} 条评论`
+      message: `找到 ${comments.length} 条评论`,
+      refreshNeeded: true // 添加刷新标志，确保前端能收到事件
     });
   } catch (error) {
     console.error('获取评论错误:', error);
@@ -270,11 +254,14 @@ function runSpider(spiderPath: string, productId: string, maxPages: number, cook
       
       // 提取JSON数据
       if (chunk.includes('📊 JSON_DATA_START')) {
+        console.log('🔍 开始提取JSON数据...');
         jsonData = '';
       } else if (chunk.includes('📊 JSON_DATA_END')) {
+        console.log('🔍 JSON数据提取完成');
         // JSON数据结束，不需要处理
       } else if (jsonData !== null) {
         jsonData += chunk;
+        console.log('🔍 正在收集JSON数据，当前长度:', jsonData.length);
       }
     });
 
@@ -294,12 +281,46 @@ function runSpider(spiderPath: string, productId: string, maxPages: number, cook
             
             // 保存数据到数据库
             if (parsedData.success && parsedData.comments && parsedData.comments.length > 0) {
-              console.log(`💾 保存 ${parsedData.comments.length} 条评论到数据库...`);
+              console.log(`💾 开始保存 ${parsedData.comments.length} 条评论到数据库...`);
+              console.log('📊 解析到的商品信息:', parsedData.product_info);
               
-              // 这里需要实现保存到数据库的逻辑
-              // 暂时先返回成功，实际保存逻辑需要根据数据库结构实现
-              resolve({ success: true, data: parsedData });
+              try {
+                // 获取商品名称 - 优先从spider_configs表获取
+                let productName = parsedData.product_info?.product_name;
+                console.log('🔍 从爬虫数据获取的商品名称:', productName);
+                
+                // 如果爬虫数据中没有商品名称，从spider_configs表获取
+                if (!productName || productName.trim() === '') {
+                  console.log('🔍 爬虫数据中没有商品名称，从spider_configs表获取...');
+                  const configs = await DatabaseService.getSpiderConfigByProductId(productId) as any[];
+                  if (configs && configs.length > 0) {
+                    productName = configs[0].product_name;
+                    console.log('🔍 从spider_configs表获取的商品名称:', productName);
+                  }
+                }
+                
+                if (!productName || productName.trim() === '') {
+                  productName = `商品ID: ${productId}`;
+                  console.log('🔍 使用默认商品名称:', productName);
+                }
+                
+                console.log('💾 最终使用的商品名称:', productName);
+                
+                // 保存评论数据到数据库
+                const saveResult = await DatabaseService.saveComments(
+                  productId, 
+                  parsedData.comments, 
+                  { product_name: productName }
+                );
+                
+                console.log('✅ 数据保存成功:', saveResult);
+                resolve({ success: true, data: parsedData });
+              } catch (error) {
+                console.error('❌ 保存数据到数据库失败:', error);
+                resolve({ success: true, data: parsedData });
+              }
             } else {
+              console.log('⚠️ 没有评论数据需要保存');
               resolve({ success: true, data: parsedData });
             }
           } else {

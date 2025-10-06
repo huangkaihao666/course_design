@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');
+    const batchId = searchParams.get('batchId');
 
     if (!productId) {
       return NextResponse.json({
@@ -13,7 +14,19 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const comments = await DatabaseService.getCommentsByProductId(productId);
+    let comments;
+    if (batchId) {
+      if (batchId === 'legacy') {
+        // 处理legacy数据（批次ID为NULL的记录）
+        comments = await DatabaseService.getCommentsByProductId(productId);
+      } else {
+        // 按批次ID获取评论
+        comments = await DatabaseService.getCommentsByBatchId(productId, batchId);
+      }
+    } else {
+      // 获取该商品的所有评论
+      comments = await DatabaseService.getCommentsByProductId(productId);
+    }
     
     return NextResponse.json({
       success: true,

@@ -7,25 +7,30 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get('action') || 'list';
 
     if (action === 'list') {
-      // 获取商品列表
+      // 获取商品列表，按批次分组
       const comments = await DatabaseService.getAllComments();
       const productMap = new Map();
       
       (comments as any[]).forEach((comment: any) => {
         const productId = comment.product_id;
-        if (!productMap.has(productId)) {
-          productMap.set(productId, {
+        const batchId = comment.crawl_batch_id || 'legacy'; // 为NULL的批次ID使用'legacy'作为默认值
+        const key = `${productId}_${batchId}`;
+        
+        if (!productMap.has(key)) {
+          productMap.set(key, {
             product_id: productId,
+            crawl_batch_id: batchId,
             product_name: comment.product_name,
             comment_count: 0,
-            created_at: comment.created_at
+            created_at: comment.created_at,
+            batch_time: comment.created_at
           });
         }
-        productMap.get(productId).comment_count++;
+        productMap.get(key).comment_count++;
       });
 
       const productList = Array.from(productMap.values())
-        .sort((a, b) => b.comment_count - a.comment_count);
+        .sort((a, b) => new Date(b.batch_time).getTime() - new Date(a.batch_time).getTime());
 
       return NextResponse.json({
         success: true,

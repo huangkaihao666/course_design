@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedKey, onMenuClick, collapsed }
             fontSize: collapsed ? '16px' : '18px'
           }}
         >
-          {collapsed ? '评论' : '评论分析系统'}
+          {collapsed ? '评论' : '电商评论分析平台'}
         </Title>
       </div>
       

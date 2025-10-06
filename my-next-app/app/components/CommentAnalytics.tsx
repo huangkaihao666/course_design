@@ -63,7 +63,10 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
       if (result.success) {
         setProducts(result.data);
         if (result.data.length > 0 && !selectedProductId) {
-          setSelectedProductId(result.data[0].product_id);
+          // 设置默认选中第一个商品，使用正确的格式：product_id_crawl_batch_id
+          const firstProduct = result.data[0];
+          const defaultProductId = `${firstProduct.product_id}_${firstProduct.crawl_batch_id}`;
+          setSelectedProductId(defaultProductId);
         }
       } else {
         message.error('获取商品列表失败：' + result.error);
@@ -75,12 +78,17 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
   };
 
   // 获取评论数据
-  const fetchComments = async (productId: string) => {
-    if (!productId) return;
+  const fetchComments = async (productBatchId: string) => {
+    if (!productBatchId) return;
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/comments?productId=${productId}`);
+      // 解析productId和batchId - 批次ID格式为 productId_batchId
+      const parts = productBatchId.split('_');
+      const productId = parts[0];
+      const batchId = parts.slice(1).join('_'); // 处理批次ID中可能包含的下划线
+      
+      const response = await fetch(`/api/comments?productId=${productId}&batchId=${batchId}`);
       const result = await response.json();
       
       if (result.success) {
@@ -198,8 +206,89 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
     });
   };
 
+  // 同步商品名称
+  const handleSyncProductNames = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/sync-product-names', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        message.success(`已同步 ${result.updatedCount} 个商品的名称`);
+        // 重新获取商品列表
+        fetchProducts();
+      } else {
+        message.error('同步商品名称失败：' + result.error);
+      }
+    } catch (error) {
+      message.error('同步商品名称失败');
+      console.error('Error syncing product names:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchProducts();
+    // 自动同步商品名称
+    const autoSyncProductNames = async () => {
+      try {
+        console.log('🔄 自动同步商品名称...');
+        const response = await fetch('/api/auto-sync-product-names', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ 自动同步完成:', result.message);
+        } else {
+          console.warn('⚠️ 自动同步失败:', result.error);
+        }
+      } catch (error) {
+        console.warn('⚠️ 自动同步出错:', error);
+      }
+    };
+
+    // 先执行同步，再获取产品列表
+    autoSyncProductNames().then(() => {
+      fetchProducts();
+    });
+    
+    // 监听爬取完成事件
+    const handleCrawlCompleted = (event: CustomEvent) => {
+      console.log('收到爬取完成事件:', event.detail);
+      // 刷新产品列表
+      fetchProducts();
+    };
+    
+    // 监听页面可见性变化，当页面重新可见时刷新数据
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('页面重新可见，刷新数据');
+        fetchProducts();
+      }
+    };
+    
+    // 定期刷新数据（每30秒）
+    const refreshInterval = setInterval(() => {
+      console.log('定期刷新数据');
+      fetchProducts();
+    }, 30000);
+    
+    window.addEventListener('crawlCompleted', handleCrawlCompleted as EventListener);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('crawlCompleted', handleCrawlCompleted as EventListener);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -364,15 +453,15 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
                 value={selectedProductId}
                 onChange={setSelectedProductId}
                 placeholder="选择商品"
-                style={{ width: 200 }}
+                style={{ width: 400 }}
                 showSearch
                 filterOption={(input, option) =>
                   (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
                 }
               >
                 {products.map(product => (
-                  <Option key={product.product_id} value={product.product_id}>
-                    {product.product_name} ({product.comment_count} 条评论)
+                  <Option key={`${product.product_id}_${product.crawl_batch_id}`} value={`${product.product_id}_${product.crawl_batch_id}`}>
+                    {product.product_name} ({product.comment_count} 条评论) - {new Date(product.batch_time).toLocaleString()}
                   </Option>
                 ))}
               </Select>
@@ -399,6 +488,14 @@ const CommentAnalytics: React.FC<CommentAnalyticsProps> = ({ productId: propProd
                 disabled={!selectedProductId}
               >
                 刷新
+              </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={handleSyncProductNames}
+                loading={loading}
+                title="同步商品名称"
+              >
+                同步数据
               </Button>
             </Space>
           </Col>
