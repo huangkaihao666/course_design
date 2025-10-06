@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ParsedCurl, SpiderConfig, ConfigPreset } from '../types';
+import React, { useState } from 'react';
+import { ParsedCurl, SpiderConfig } from '../types';
 import { App, Modal, Input, Form, Button } from 'antd';
 import HelpGuide from './HelpGuide';
 import Header from './parser/Header';
 import MessageAlerts from './parser/MessageAlerts';
 import CurlInputArea from './parser/CurlInputArea';
 import ParseResultArea from './parser/ParseResultArea';
-import ConfigManagementArea from './parser/ConfigManagementArea';
+// 配置管理区域已移除
 import DataManagementArea from './parser/DataManagementArea';
 
 export default function CurlParser() {
@@ -18,31 +18,15 @@ export default function CurlParser() {
     parsed: ParsedCurl;
     config: SpiderConfig;
   } | null>(null);
-  const [configs, setConfigs] = useState<ConfigPreset[]>([]);
-  const [selectedConfig, setSelectedConfig] = useState<ConfigPreset | null>(null);
+  // 配置管理状态已移除
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'parser' | 'configs' | 'database'>('parser');
+  const [activeTab, setActiveTab] = useState<'parser' | 'database'>('parser');
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [form] = Form.useForm();
 
-  // 加载保存的配置
-  useEffect(() => {
-    loadConfigs();
-  }, []);
-
-  const loadConfigs = async () => {
-    try {
-      const response = await fetch('/api/config');
-      const result = await response.json();
-      if (result.success) {
-        setConfigs(result.data);
-      }
-    } catch (error) {
-      console.error('加载配置失败:', error);
-    }
-  };
+  // 配置管理逻辑已移除
 
   const parseCurl = async () => {
     if (!curlInput.trim()) {
@@ -93,31 +77,7 @@ export default function CurlParser() {
     }
   };
 
-
-  const deleteConfig = async (id: string) => {
-    if (!confirm('确定要删除这个配置吗？')) return;
-
-    try {
-      const response = await fetch(`/api/config?id=${id}`, {
-        method: 'DELETE',
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setSuccess('配置删除成功！');
-        loadConfigs();
-        if (selectedConfig?.id === id) {
-          setSelectedConfig(null);
-        }
-      } else {
-        setError(result.error || '删除失败');
-      }
-    } catch (error) {
-      setError('删除请求失败');
-      console.error(error);
-    }
-  };
+  // 配置删除逻辑已移除
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -139,30 +99,7 @@ export default function CurlParser() {
     setSuccess('配置文件已导出！');
   };
 
-  const exportToSpiderSystem = async (config: SpiderConfig) => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/export-to-spider', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ config }),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        setSuccess('配置已成功导出到爬虫系统！');
-      } else {
-        setError(result.error || '导出失败');
-      }
-    } catch (error) {
-      setError('导出请求失败');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 导出到爬虫系统逻辑已移除
 
   const loadSampleCurl = () => {
     const sampleCurl = `curl 'https://h5api.m.taobao.com/h5/mtop.taobao.rate.detaillist.get/6.0/?jsv=2.7.4&appKey=12574478&t=1758284758370&sign=04c7df048bc9694ce772b76cd18f1ef3&api=mtop.taobao.rate.detaillist.get&v=6.0&isSec=0&ecode=1&timeout=20000&dataType=jsonp&valueType=string&type=jsonp&callback=mtopjsonp12&data=%7B%22showTrueCount%22%3Afalse%2C%22auctionNumId%22%3A%22943751893529%22%2C%22pageNo%22%3A1%2C%22pageSize%22%3A20%2C%22orderType%22%3A%22%22%2C%22searchImpr%22%3A%22-8%22%2C%22expression%22%3A%22%22%2C%22skuVids%22%3A%22%22%2C%22rateSrc%22%3A%22pc_rate_list%22%2C%22rateType%22%3A%22%22%7D' \\
@@ -206,7 +143,6 @@ export default function CurlParser() {
         message.success('💾 数据已成功保存到数据库！');
         setSaveModalVisible(false);
         form.resetFields();
-        loadConfigs(); // 重新加载配置列表
       } else {
         message.error('保存到数据库失败：' + saveResult.error);
       }
@@ -260,26 +196,13 @@ export default function CurlParser() {
               parsedData={parsedData}
               loading={loading}
               onExportConfig={exportConfig}
-              onExportToSpiderSystem={exportToSpiderSystem}
               onCopyToClipboard={copyToClipboard}
             />
 
           </div>
         )}
 
-        {activeTab === 'configs' && (
-          <ConfigManagementArea
-            configs={configs}
-            selectedConfig={selectedConfig}
-            setSelectedConfig={setSelectedConfig}
-            loading={loading}
-            onDeleteConfig={deleteConfig}
-            onExportConfig={exportConfig}
-            onExportToSpiderSystem={exportToSpiderSystem}
-            onCopyToClipboard={copyToClipboard}
-            onSwitchToParser={() => setActiveTab('parser')}
-          />
-        )}
+        {/* 配置管理界面已移除 */}
 
         {activeTab === 'database' && (
           <DataManagementArea

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle, Settings, Download, Upload } from 'lucide-react';
+import { CheckCircle, Settings, Download } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ParsedCurl, SpiderConfig } from '../../types';
@@ -13,7 +13,6 @@ interface ParseResultAreaProps {
   } | null;
   loading: boolean;
   onExportConfig: (config: SpiderConfig) => void;
-  onExportToSpiderSystem: (config: SpiderConfig) => void;
   onCopyToClipboard: (text: string) => void;
 }
 
@@ -21,7 +20,6 @@ export default function ParseResultArea({
   parsedData,
   loading,
   onExportConfig,
-  onExportToSpiderSystem,
   onCopyToClipboard
 }: ParseResultAreaProps) {
   if (!parsedData) return null;
@@ -112,15 +110,7 @@ export default function ParseResultArea({
               <span className="hidden sm:inline">📥 导出JSON</span>
               <span className="sm:hidden">📥 导出</span>
             </button>
-            <button
-              onClick={() => onExportToSpiderSystem(parsedData.config)}
-              disabled={loading}
-              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 disabled:opacity-50 flex items-center justify-center gap-1 sm:gap-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm"
-            >
-              <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">🚀 同步到爬虫</span>
-              <span className="sm:hidden">🚀 同步</span>
-            </button>
+            {/* 同步到爬虫操作已移除 */}
           </div>
         </div>
         <div className="max-h-48 sm:max-h-64 overflow-y-auto bg-gray-900 rounded-xl border-2 border-gray-200">

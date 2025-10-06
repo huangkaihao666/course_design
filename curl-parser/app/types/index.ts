@@ -30,11 +30,4 @@ export interface SpiderConfig {
   apiParams: TaobaoApiParams;
 }
 
-export interface ConfigPreset {
-  id: string;
-  name: string;
-  description: string;
-  config: SpiderConfig;
-  createdAt: string;
-  updatedAt: string;
-}
+// 预设配置类型已移除
