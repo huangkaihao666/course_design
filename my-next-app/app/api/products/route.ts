@@ -37,35 +37,43 @@ export async function GET(request: NextRequest) {
         data: productList
       });
     } else if (action === 'stats') {
-      // 获取统计信息
-      const stats = await DatabaseService.getCommentStats();
-      
-      // 获取情感分析统计
-      const sentimentStats = await DatabaseService.getSentimentStats();
-      
-      // 获取评分分布
-      const ratingDistribution = await DatabaseService.getRatingDistribution();
-      
-      // 获取商品类型统计
-      const productTypes = await DatabaseService.getProductTypeStats();
-      
-      // 获取爬虫配置统计
-      const configStats = await DatabaseService.getConfigStats();
-      
-      // 获取最近活动
-      const recentActivity = await DatabaseService.getRecentActivity();
+      try {
+        // 获取统计信息
+        const stats = await DatabaseService.getCommentStats();
+        
+        // 获取情感分析统计
+        const sentimentStats = await DatabaseService.getSentimentStats();
+        
+        // 获取评分分布
+        const ratingDistribution = await DatabaseService.getRatingDistribution();
+        
+        // 获取商品类型统计
+        const productTypes = await DatabaseService.getProductTypeStats();
+        
+        // 获取爬虫配置统计
+        const configStats = await DatabaseService.getConfigStats();
+        
+        // 获取最近活动
+        const recentActivity = await DatabaseService.getRecentActivity();
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          ...stats,
-          ...sentimentStats,
-          ...ratingDistribution,
-          ...productTypes,
-          ...configStats,
-          ...recentActivity
-        }
-      });
+        return NextResponse.json({
+          success: true,
+          data: {
+            ...stats,
+            ...sentimentStats,
+            ...ratingDistribution,
+            ...productTypes,
+            ...configStats,
+            ...recentActivity
+          }
+        });
+      } catch (error) {
+        console.error('Stats API error:', error);
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to fetch stats: ' + (error instanceof Error ? error.message : String(error))
+        }, { status: 500 });
+      }
     } else {
       return NextResponse.json({
         success: false,

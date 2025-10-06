@@ -17,7 +17,8 @@ import {
   Badge,
   Divider,
   Empty,
-  App
+  App,
+  Spin
 } from 'antd';
 import {
   DatabaseOutlined,
@@ -32,8 +33,38 @@ import {
   DislikeOutlined,
   MehOutlined,
   TrophyOutlined,
-  RiseOutlined
+  RiseOutlined,
+  ShoppingOutlined,
+  StarOutlined
 } from '@ant-design/icons';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title as ChartTitle,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Filler
+} from 'chart.js';
+import { Bar, Pie, Doughnut, Line } from 'react-chartjs-2';
+
+// 注册Chart.js组件
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ChartTitle,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Filler
+);
 
 const { Title, Text } = Typography;
 
@@ -84,6 +115,7 @@ const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [products, setProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [chartLoading, setChartLoading] = useState(false);
 
   // 获取统计数据
   const fetchStats = async () => {
@@ -128,8 +160,199 @@ const Dashboard: React.FC = () => {
 
   // 刷新所有数据
   const handleRefresh = () => {
+    setChartLoading(true);
     fetchStats();
     fetchProducts();
+    setTimeout(() => setChartLoading(false), 1000);
+  };
+
+  // 情感分析饼图配置
+  const sentimentChartData = {
+    labels: ['正面', '负面', '中性'],
+    datasets: [
+      {
+        data: [
+          stats?.sentimentStats?.positive || 0,
+          stats?.sentimentStats?.negative || 0,
+          stats?.sentimentStats?.neutral || 0
+        ],
+        backgroundColor: [
+          '#52c41a',
+          '#ff4d4f',
+          '#1890ff'
+        ],
+        borderColor: [
+          '#52c41a',
+          '#ff4d4f',
+          '#1890ff'
+        ],
+        borderWidth: 2,
+        hoverOffset: 10
+      }
+    ]
+  };
+
+  const sentimentChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          padding: 20,
+          font: {
+            size: 14
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((context.parsed / total) * 100).toFixed(1);
+            return `${context.label}: ${context.parsed}条 (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
+  // 评分分布柱状图配置
+  const ratingChartData = {
+    labels: ['1星', '2星', '3星', '4星', '5星'],
+    datasets: [
+      {
+        label: '评论数量',
+        data: [
+          stats?.ratingDistribution?.[1] || 0,
+          stats?.ratingDistribution?.[2] || 0,
+          stats?.ratingDistribution?.[3] || 0,
+          stats?.ratingDistribution?.[4] || 0,
+          stats?.ratingDistribution?.[5] || 0
+        ],
+        backgroundColor: [
+          '#ff4d4f',
+          '#ff7a45',
+          '#faad14',
+          '#52c41a',
+          '#1890ff'
+        ],
+        borderColor: [
+          '#ff4d4f',
+          '#ff7a45',
+          '#faad14',
+          '#52c41a',
+          '#1890ff'
+        ],
+        borderWidth: 1,
+        borderRadius: 4
+      }
+    ]
+  };
+
+  const ratingChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((context.parsed / total) * 100).toFixed(1);
+            return `${context.label}: ${context.parsed}条 (${percentage}%)`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1
+        }
+      }
+    }
+  };
+
+  // 商品类型分布环形图配置
+  const productTypeChartData = {
+    labels: stats?.productTypes?.map(item => item.type) || [],
+    datasets: [
+      {
+        data: stats?.productTypes?.map(item => item.count) || [],
+        backgroundColor: [
+          '#1890ff',
+          '#52c41a',
+          '#faad14',
+          '#ff4d4f',
+          '#722ed1',
+          '#13c2c2',
+          '#eb2f96'
+        ],
+        borderColor: '#fff',
+        borderWidth: 2,
+        hoverOffset: 8
+      }
+    ]
+  };
+
+  const productTypeChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right' as const,
+        labels: {
+          padding: 15,
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((context.parsed / total) * 100).toFixed(1);
+            return `${context.label}: ${context.parsed}个 (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
+  // 商品评论数量排行图配置
+  const productRankingData = {
+    labels: products.slice(0, 10).map(p => p.product_name || `商品${p.product_id}`),
+    datasets: [
+      {
+        label: '评论数量',
+        data: products.slice(0, 10).map(p => p.comment_count),
+        backgroundColor: '#1890ff',
+        borderColor: '#1890ff',
+        borderWidth: 1,
+        borderRadius: 4
+      }
+    ]
+  };
+
+  const productRankingOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y' as const,
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true
+      }
+    }
   };
 
   useEffect(() => {
@@ -260,9 +483,17 @@ const Dashboard: React.FC = () => {
           label: '数据概览',
           children: (
             <Row gutter={[16, 16]}>
-              {/* 情感分析统计 */}
+              {/* 情感分析饼图 */}
               <Col xs={24} lg={12}>
-                <Card title="情感分析分布" extra={<PieChartOutlined />}>
+                <Card 
+                  title={
+                    <Space>
+                      <HeartOutlined style={{ color: '#ff4d4f' }} />
+                      <span>情感分析分布</span>
+                    </Space>
+                  }
+                  extra={<PieChartOutlined />}
+                >
                   {stats?.analyzedComments === 0 ? (
                     <div style={{ textAlign: 'center', padding: '40px 0' }}>
                       <Empty 
@@ -275,7 +506,6 @@ const Dashboard: React.FC = () => {
                             type="primary" 
                             icon={<ThunderboltOutlined />}
                             onClick={() => {
-                              // 通过URL hash跳转到评论分析页面
                               window.location.hash = '#comment-analytics';
                             }}
                           >
@@ -285,128 +515,83 @@ const Dashboard: React.FC = () => {
                       </Empty>
                     </div>
                   ) : (
-                    <Row gutter={16}>
-                      <Col span={8}>
-                        <div style={{ textAlign: 'center' }}>
-                          <Progress
-                            type="circle"
-                            percent={stats?.sentimentStats ? Math.round((stats.sentimentStats.positive / (stats.sentimentStats.positive + stats.sentimentStats.negative + stats.sentimentStats.neutral)) * 100) : 0}
-                            strokeColor="#52c41a"
-                            format={() => (
-                              <div>
-                                <div style={{ fontSize: 24, color: '#52c41a' }}>
-                                  {stats?.sentimentStats?.positive || 0}
-                                </div>
-                                <div style={{ fontSize: 12, color: '#666' }}>正面</div>
-                              </div>
-                            )}
-                          />
-                        </div>
-                      </Col>
-                      <Col span={8}>
-                        <div style={{ textAlign: 'center' }}>
-                          <Progress
-                            type="circle"
-                            percent={stats?.sentimentStats ? Math.round((stats.sentimentStats.neutral / (stats.sentimentStats.positive + stats.sentimentStats.negative + stats.sentimentStats.neutral)) * 100) : 0}
-                            strokeColor="#1890ff"
-                            format={() => (
-                              <div>
-                                <div style={{ fontSize: 24, color: '#1890ff' }}>
-                                  {stats?.sentimentStats?.neutral || 0}
-                                </div>
-                                <div style={{ fontSize: 12, color: '#666' }}>中性</div>
-                              </div>
-                            )}
-                          />
-                        </div>
-                      </Col>
-                      <Col span={8}>
-                        <div style={{ textAlign: 'center' }}>
-                          <Progress
-                            type="circle"
-                            percent={stats?.sentimentStats ? Math.round((stats.sentimentStats.negative / (stats.sentimentStats.positive + stats.sentimentStats.negative + stats.sentimentStats.neutral)) * 100) : 0}
-                            strokeColor="#ff4d4f"
-                            format={() => (
-                              <div>
-                                <div style={{ fontSize: 24, color: '#ff4d4f' }}>
-                                  {stats?.sentimentStats?.negative || 0}
-                                </div>
-                                <div style={{ fontSize: 12, color: '#666' }}>负面</div>
-                              </div>
-                            )}
-                          />
-                        </div>
-                      </Col>
-                    </Row>
+                    <div style={{ height: '300px', position: 'relative' }}>
+                      <Spin spinning={chartLoading} tip="加载图表中...">
+                        <Pie data={sentimentChartData} options={sentimentChartOptions} />
+                      </Spin>
+                    </div>
                   )}
                 </Card>
               </Col>
 
-              {/* 评分分布 */}
+              {/* 评分分布柱状图 */}
               <Col xs={24} lg={12}>
-                <Card title="评分分布" extra={<LineChartOutlined />}>
-                  <Space direction="vertical" style={{ width: '100%' }}>
-                    {[5, 4, 3, 2, 1].map(rating => {
-                      const count = stats?.ratingDistribution?.[rating as keyof typeof stats.ratingDistribution] || 0;
-                      const total = Object.values(stats?.ratingDistribution || {}).reduce((sum, val) => sum + val, 0);
-                      const percentage = total > 0 ? (count / total) * 100 : 0;
-                      
-                      return (
-                        <div key={rating}>
-                          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                            <Space>
-                              <Badge count={rating} style={{ backgroundColor: rating >= 4 ? '#52c41a' : rating >= 3 ? '#faad14' : '#ff4d4f' }} />
-                              <Text>{rating}星</Text>
-                            </Space>
-                            <Space>
-                              <Text>{count}条</Text>
-                              <Text type="secondary">({percentage.toFixed(1)}%)</Text>
-                            </Space>
-                          </Space>
-                          <Progress 
-                            percent={percentage} 
-                            size="small" 
-                            strokeColor={rating >= 4 ? '#52c41a' : rating >= 3 ? '#faad14' : '#ff4d4f'}
-                            showInfo={false}
-                          />
-                        </div>
-                      );
-                    })}
-                  </Space>
+                <Card 
+                  title={
+                    <Space>
+                      <StarOutlined style={{ color: '#faad14' }} />
+                      <span>评分分布</span>
+                    </Space>
+                  }
+                  extra={<BarChartOutlined />}
+                >
+                  <div style={{ height: '300px', position: 'relative' }}>
+                    <Spin spinning={chartLoading} tip="加载图表中...">
+                      <Bar data={ratingChartData} options={ratingChartOptions} />
+                    </Spin>
+                  </div>
                 </Card>
               </Col>
 
-              {/* 商品类型分布 */}
+              {/* 商品类型分布环形图 */}
               <Col xs={24} lg={12}>
-                <Card title="商品类型分布" extra={<PieChartOutlined />}>
-                  <List
-                    dataSource={stats?.productTypes || []}
-                    renderItem={(item) => (
-                      <List.Item>
-                        <div style={{ width: '100%' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <Text strong>{item.type}</Text>
-                            <Text type="secondary">{item.count}个商品</Text>
-                          </div>
-                          <Progress 
-                            percent={item.percentage} 
-                            size="small" 
-                            strokeColor="#1890ff"
-                            showInfo={false}
-                          />
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            {item.percentage}% 占比
-                          </Text>
-                        </div>
-                      </List.Item>
-                    )}
-                  />
+                <Card 
+                  title={
+                    <Space>
+                      <ShoppingOutlined style={{ color: '#1890ff' }} />
+                      <span>商品类型分布</span>
+                    </Space>
+                  }
+                  extra={<PieChartOutlined />}
+                >
+                  <div style={{ height: '300px', position: 'relative' }}>
+                    <Spin spinning={chartLoading} tip="加载图表中...">
+                      <Doughnut data={productTypeChartData} options={productTypeChartOptions} />
+                    </Spin>
+                  </div>
+                </Card>
+              </Col>
+
+              {/* 商品评论数量排行 */}
+              <Col xs={24} lg={12}>
+                <Card 
+                  title={
+                    <Space>
+                      <RiseOutlined style={{ color: '#52c41a' }} />
+                      <span>热门商品排行</span>
+                    </Space>
+                  }
+                  extra={<TrophyOutlined />}
+                >
+                  <div style={{ height: '300px', position: 'relative' }}>
+                    <Spin spinning={chartLoading} tip="加载图表中...">
+                      <Bar data={productRankingData} options={productRankingOptions} />
+                    </Spin>
+                  </div>
                 </Card>
               </Col>
 
               {/* 最近活动 */}
-              <Col xs={24} lg={12}>
-                <Card title="最近活动" extra={<TrophyOutlined />}>
+              <Col xs={24}>
+                <Card 
+                  title={
+                    <Space>
+                      <TrophyOutlined style={{ color: '#722ed1' }} />
+                      <span>最近活动</span>
+                    </Space>
+                  }
+                  extra={<RiseOutlined />}
+                >
                   <List
                     dataSource={stats?.recentActivity || []}
                     renderItem={(item) => (

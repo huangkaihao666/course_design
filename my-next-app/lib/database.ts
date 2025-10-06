@@ -513,12 +513,12 @@ export class DatabaseService {
         `SELECT 
           'comment' as type,
           '新增评论数据' as description,
-          created_at as time,
+          MAX(created_at) as time,
           COUNT(*) as count
          FROM comments 
          WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
          GROUP BY DATE(created_at), HOUR(created_at)
-         ORDER BY created_at DESC
+         ORDER BY time DESC
          LIMIT 5`
       );
       
@@ -526,12 +526,12 @@ export class DatabaseService {
         `SELECT 
           'config' as type,
           '更新爬虫配置' as description,
-          created_at as time,
+          MAX(created_at) as time,
           COUNT(*) as count
          FROM spider_configs 
          WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
          GROUP BY DATE(created_at), HOUR(created_at)
-         ORDER BY created_at DESC
+         ORDER BY time DESC
          LIMIT 3`
       );
       
