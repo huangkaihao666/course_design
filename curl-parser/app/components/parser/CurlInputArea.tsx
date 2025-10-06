@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Code, Settings, Copy } from 'lucide-react';
+import { message } from 'antd';
 
 interface CurlInputAreaProps {
   curlInput: string;

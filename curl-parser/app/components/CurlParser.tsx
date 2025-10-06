@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ParsedCurl, SpiderConfig, ConfigPreset } from '../types';
+import { App } from 'antd';
 import HelpGuide from './HelpGuide';
 import Header from './parser/Header';
 import MessageAlerts from './parser/MessageAlerts';
@@ -11,6 +12,7 @@ import ConfigManagementArea from './parser/ConfigManagementArea';
 import DataManagementArea from './parser/DataManagementArea';
 
 export default function CurlParser() {
+  const { message } = App.useApp();
   const [curlInput, setCurlInput] = useState('');
   const [parsedData, setParsedData] = useState<{
     parsed: ParsedCurl;
@@ -42,7 +44,7 @@ export default function CurlParser() {
 
   const parseCurl = async () => {
     if (!curlInput.trim()) {
-      setError('请输入curl命令');
+      message.error('请输入curl命令');
       return;
     }
 
@@ -58,11 +60,22 @@ export default function CurlParser() {
         body: JSON.stringify({ curlCommand: curlInput }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Expected JSON but got:', text);
+        throw new Error('服务器返回了非JSON格式的响应');
+      }
+
       const result = await response.json();
 
       if (result.success) {
         setParsedData(result.data);
-        setSuccess('curl命令解析成功！');
+        message.success('🎉 Curl命令解析成功！');
         
         // 自动保存到数据库
         try {
@@ -80,18 +93,20 @@ export default function CurlParser() {
 
           const saveResult = await saveResponse.json();
           if (saveResult.success) {
-            setSuccess('curl命令解析成功并已保存到数据库！');
+            message.success('💾 数据已成功保存到数据库！');
           } else {
-            setSuccess('curl命令解析成功，但保存到数据库失败');
+            message.warning('⚠️ 解析成功，但保存到数据库失败');
           }
         } catch (saveError) {
-          setSuccess('curl命令解析成功，但保存到数据库失败');
+          message.warning('⚠️ 解析成功，但保存到数据库失败');
           console.error('保存到数据库失败:', saveError);
         }
       } else {
+        message.error(result.error || '解析失败');
         setError(result.error || '解析失败');
       }
     } catch (error) {
+      message.error('网络错误，请重试');
       setError('解析请求失败');
       console.error(error);
     } finally {
@@ -127,7 +142,9 @@ export default function CurlParser() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      setSuccess('已复制到剪贴板！');
+      message.success('📋 已复制到剪贴板！');
+    }).catch(() => {
+      message.error('复制失败，请手动复制');
     });
   };
 
@@ -178,6 +195,7 @@ export default function CurlParser() {
   -H 'referer: https://item.taobao.com/' \\
   -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36'`;
     setCurlInput(sampleCurl);
+    message.info('📝 示例curl命令已加载');
   };
 
   return (

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ConfigProvider, App } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
 
 export const metadata: Metadata = {
   title: "Curl解析器 - 配置管理工具",
@@ -14,7 +16,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="antialiased">
-        {children}
+        <ConfigProvider locale={zhCN}>
+          <App>
+            {children}
+          </App>
+        </ConfigProvider>
       </body>
     </html>
   );
